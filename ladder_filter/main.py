@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import pika
 import time
+import json
 
 import logging
-
 
 def parse_config_params():
     """ Parse env variables to find program config params
@@ -18,26 +18,31 @@ def parse_config_params():
 
     return config_params
 
-
 def main():
     connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='rabbitmq'))
+
     channel = connection.channel()
-
     channel.queue_declare(queue='matches')
+    channel.queue_declare(queue='team_matches')
+    channel.queue_declare(queue='1v1_matches')
 
-    for i in range(100):
-        msg = ""
-        if i%2:
-            msg = "team"
-        else:
-            msg = "1v1"
-        channel.basic_publish(exchange='', routing_key='matches', body=msg)
-        print(" [x] Sent {}".format(msg))
-        time.sleep(1)
 
-    connection.close()
-            
+    def callback(ch, method, properties, body):
+        print("[x] Received %r" % body)
+        match = json.loads(body.decode('utf-8'))
+        if match['ladder'] == 'RM_TEAM':
+            print("ITS TEAM")
+            channel.basic_publish(exchange='', routing_key='team_matches', body=body)
+        elif match['ladder'] == 'RM_1v1':
+            print("ITS 1V1")
+            channel.basic_publish(exchange='', routing_key='1v1_matches', body=body)
+
+    channel.basic_consume(
+        queue='matches', on_message_callback=callback, auto_ack=True)
+
+    print(' [*] Waiting for messages. To exit press CTRL+C')
+    channel.start_consuming()
 
 
 

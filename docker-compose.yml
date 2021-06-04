@@ -13,21 +13,9 @@ services:
         timeout: 5s
         retries: 10
 
-  producer:
-    container_name: producer
-    image: producer:latest
-    entrypoint: python3 /main.py
-    restart: on-failure
-    depends_on:
-      - rabbitmq
-    links: 
-      - rabbitmq
-    environment:
-      - PYTHONUNBUFFERED=1
-
-  consumer:
-    container_name: consumer
-    image: consumer:latest
+  ladder_filter:
+    container_name: ladder_filter
+    image: ladder_filter:latest
     entrypoint: python3 /main.py
     restart: on-failure
     depends_on:

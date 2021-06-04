@@ -6,17 +6,12 @@ default: build
 
 all:
 
-consumer:
-	docker build -f ./consumer/Dockerfile -t "consumer:latest" .
-.PHONY: consumer
-
-producer:
-	docker build -f ./producer/Dockerfile -t "producer:latest" .
-.PHONY: producer
+ladder_filter:
+	docker build -f ./ladder_filter/Dockerfile -t "ladder_filter:latest" .
+.PHONY: ladder_filter
 
 docker-image:
-	docker build -f ./producer/Dockerfile -t "producer:latest" .
-	docker build -f ./consumer/Dockerfile -t "consumer:latest" .
+	docker build -f ./ladder_filter/Dockerfile -t "ladder_filter:latest" .
 .PHONY: docker-image
 
 up: docker-image
