@@ -20,10 +20,9 @@ def loadMatches():
         for rows in csvReader:
             j += 1
             channel.basic_publish(exchange='', routing_key='matches', body=json.dumps(rows))
-            if j==500:break
+            if j==10000:break
     connection.close()
     
-
 def loadPlayers():
     connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='localhost'))
@@ -37,7 +36,7 @@ def loadPlayers():
         for rows in csvReader:
             i += 1
             channel.basic_publish(exchange='', routing_key='match_players', body=json.dumps(rows))
-            if i==500:break
+            if i==5000:break
     connection.close()
 
 def main():

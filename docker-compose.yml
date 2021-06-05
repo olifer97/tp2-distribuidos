@@ -13,9 +13,33 @@ services:
         timeout: 5s
         retries: 10
 
+  matches_spliter:
+    container_name: matches_spliter
+    image: matches_spliter:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+
   ladder_filter:
     container_name: ladder_filter
     image: ladder_filter:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  servers_avg_rating_duration:
+    container_name: servers_avg_rating_duration
+    image: servers_avg_rating_duration:latest
     entrypoint: python3 /main.py
     restart: on-failure
     depends_on:
