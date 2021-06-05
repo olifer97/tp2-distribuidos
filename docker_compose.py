@@ -1,4 +1,6 @@
+import sys
 
+BASE_COMPOSE = """
 version: '3'
 services:
   rabbitmq:
@@ -73,41 +75,9 @@ services:
       - rabbitmq
     environment:
       - PYTHONUNBUFFERED=1
-      - K_REDUCERS=2
+      - K_REDUCERS=%d
 
-  
-
-  groupby_match_reducer_0:
-    container_name: groupby_match_reducer_0
-    image: groupby_match_reducer:latest
-    entrypoint: python3 /main.py
-    restart: on-failure
-    depends_on:
-      - rabbitmq
-    links: 
-      - rabbitmq
-    environment:
-      - PYTHONUNBUFFERED=1
-      - INPUT_QUEUE=players_reducer_0
-      - OUTPUT_QUEUE=1v1_players
-
-
-
-  groupby_match_reducer_1:
-    container_name: groupby_match_reducer_1
-    image: groupby_match_reducer:latest
-    entrypoint: python3 /main.py
-    restart: on-failure
-    depends_on:
-      - rabbitmq
-    links: 
-      - rabbitmq
-    environment:
-      - PYTHONUNBUFFERED=1
-      - INPUT_QUEUE=players_reducer_1
-      - OUTPUT_QUEUE=1v1_players
-
-
+  <GROUPBY_MATCH_REDUCERS>
     
   winner_vs_loser_filter:
     container_name: winner_vs_loser_filter
@@ -122,3 +92,39 @@ services:
       - PYTHONUNBUFFERED=1
       - INPUT_QUEUE=1v1_players
       - OUTPUT_QUEUE=2
+"""
+
+GROUPBY_MATCH_REDUCER_FORMAT = """
+
+  groupby_match_reducer_%d:
+    container_name: groupby_match_reducer_%d
+    image: groupby_match_reducer:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=players_reducer_%d
+      - OUTPUT_QUEUE=1v1_players
+
+"""
+
+def main():
+    groupby_match_reducers = int(sys.argv[1])
+
+    reducers_section = ""
+
+    for i in range(groupby_match_reducers):
+        reducers_section += GROUPBY_MATCH_REDUCER_FORMAT % (i, i, i)
+
+    base = BASE_COMPOSE % (groupby_match_reducers)
+    compose = base.replace("<GROUPBY_MATCH_REDUCERS>", reducers_section)
+
+    with open("docker-compose.yml", "w") as compose_file:
+        compose_file.write(compose)
+
+if __name__ == "__main__":
+    main()

@@ -36,7 +36,7 @@ def loadPlayers():
         for rows in csvReader:
             i += 1
             channel.basic_publish(exchange='', routing_key='match_players', body=json.dumps(rows))
-            if i==10000:break
+            if i==30000:break
         channel.basic_publish(exchange='', routing_key='match_players', body=json.dumps({"final": True}))
     connection.close()
 
