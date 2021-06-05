@@ -16,12 +16,22 @@ matches_spliter:
 
 servers_avg_rating_duration:
 	docker build -f ./servers_avg_rating_duration/Dockerfile -t "servers_avg_rating_duration:latest" .
-.PHONY: ladder_filter
+.PHONY: servers_avg_rating_duration
+
+players_clone_rating_filter:
+	docker build -f ./players_clone_rating_filter/Dockerfile -t "players_clone_rating_filter:latest" .
+.PHONY: players_clone_rating_filter
+
+groupby_match_controller:
+	docker build -f ./groupby_match_controller/Dockerfile -t "groupby_match_controller:latest" .
+.PHONY: groupby_match_controller
 
 docker-image:
 	docker build -f ./matches_spliter/Dockerfile -t "matches_spliter:latest" .
 	docker build -f ./ladder_filter/Dockerfile -t "ladder_filter:latest" .
+	docker build -f ./players_clone_rating_filter/Dockerfile -t "players_clone_rating_filter:latest" .
 	docker build -f ./servers_avg_rating_duration/Dockerfile -t "servers_avg_rating_duration:latest" .
+	docker build -f ./groupby_match_controller/Dockerfile -t "groupby_match_controller:latest" .
 .PHONY: docker-image
 
 up: docker-image

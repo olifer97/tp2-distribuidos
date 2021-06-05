@@ -48,3 +48,27 @@ services:
       - rabbitmq
     environment:
       - PYTHONUNBUFFERED=1
+
+  players_clone_rating_filter:
+    container_name: players_clone_rating_filter
+    image: players_clone_rating_filter:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  groupby_match_controller:
+    container_name: groupby_match_controller
+    image: groupby_match_controller:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1

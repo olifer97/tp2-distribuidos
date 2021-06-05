@@ -20,7 +20,6 @@ def parse_config_params():
     return config_params
 
 def to_timedelta(string_time):
-    print(string_time)
     if 'days' in string_time:
         time_split = string_time.split(" days, ")
         days, timestamp = time_split
@@ -42,7 +41,7 @@ def main():
     channel.queue_declare(queue='1')
 
     def callback(ch, method, properties, body):
-        print("[x] Received %r" % body)
+        #print("[x] Received %r" % body)
         match = json.loads(body.decode('utf-8'))
         server = match['server']
         string_avg_rating = match['average_rating']
