@@ -92,6 +92,38 @@ services:
       - PYTHONUNBUFFERED=1
       - INPUT_QUEUE=1v1_players
       - OUTPUT_QUEUE=2
+    
+  arena_filter:
+    container_name: arena_filter
+    image: map_no_mirror_filter:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=1v1_matches
+      - OUTPUT_QUEUE=1v1_arena_matches
+      - MAP=arena
+      - NO_MIRROR=true
+
+  islands_filter:
+    container_name: islands_filter
+    image: map_no_mirror_filter:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=team_matches
+      - OUTPUT_QUEUE=team_islands_matches
+      - MAP=islands
+      - NO_MIRROR=null
 """
 
 GROUPBY_MATCH_REDUCER_FORMAT = """

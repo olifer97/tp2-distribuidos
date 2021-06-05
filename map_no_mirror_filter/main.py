@@ -20,6 +20,9 @@ def parse_config_params():
     try:
         config_params["input_queue"] = os.environ["INPUT_QUEUE"]
         config_params["output_queue"] = os.environ["OUTPUT_QUEUE"]
+        config_params['map'] = os.environ["MAP"]
+        print(os.environ["NO_MIRROR"])
+        config_params['no_mirror'] = True if os.environ["NO_MIRROR"]=='true' else False
     except KeyError as e:
         raise KeyError(
             "Key was not found. Error: {} .Aborting server".format(e))
@@ -40,16 +43,11 @@ def main():
 
     def callback(ch, method, properties, body):
         #print("[x] Received %r" % body)
-        players = json.loads(body.decode('utf-8'))
+        match = json.loads(body.decode('utf-8'))
 
-        winner_string_rating = players['rtg_winner']
-        winner_rating = 0 if winner_string_rating == '' else float(winner_string_rating)
-
-        loser_string_rating = players['rtg_loser']
-        loser_rating = 0 if loser_string_rating == '' else float(loser_string_rating)
-
-        if winner_rating > 1000 and (loser_rating-winner_rating)*100/winner_rating > 30:
-            channel.basic_publish(exchange='', routing_key=config['output_queue'], body=body)
+        if match['map'] == config['map']:
+            if not config['no_mirror'] or (config['no_mirror'] and match['mirror'] == 'False'):
+                channel.basic_publish(exchange='', routing_key=config['output_queue'], body=body)
                     
 
     channel.basic_consume(

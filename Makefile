@@ -34,6 +34,10 @@ winner_vs_loser_filter:
 	docker build -f ./winner_vs_loser_filter/Dockerfile -t "winner_vs_loser_filter:latest" .
 .PHONY: winner_vs_loser_filter
 
+map_no_mirror_filter:
+	docker build -f ./map_no_mirror_filter/Dockerfile -t "map_no_mirror_filter:latest" .
+.PHONY: map_no_mirror_filter
+
 docker-image:
 	docker build -f ./matches_spliter/Dockerfile -t "matches_spliter:latest" .
 	docker build -f ./ladder_filter/Dockerfile -t "ladder_filter:latest" .
@@ -42,6 +46,7 @@ docker-image:
 	docker build -f ./groupby_match_controller/Dockerfile -t "groupby_match_controller:latest" .
 	docker build -f ./groupby_match_reducer/Dockerfile -t "groupby_match_reducer:latest" .
 	docker build -f ./winner_vs_loser_filter/Dockerfile -t "winner_vs_loser_filter:latest" .
+	docker build -f ./map_no_mirror_filter/Dockerfile -t "map_no_mirror_filter:latest" .
 .PHONY: docker-image
 
 up: docker-image
