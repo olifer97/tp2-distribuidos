@@ -26,12 +26,17 @@ groupby_match_controller:
 	docker build -f ./groupby_match_controller/Dockerfile -t "groupby_match_controller:latest" .
 .PHONY: groupby_match_controller
 
+groupby_match_reducer:
+	docker build -f ./groupby_match_controller/Dockerfile -t "groupby_match_reducer:latest" .
+.PHONY: groupby_match_reducer
+
 docker-image:
 	docker build -f ./matches_spliter/Dockerfile -t "matches_spliter:latest" .
 	docker build -f ./ladder_filter/Dockerfile -t "ladder_filter:latest" .
 	docker build -f ./players_clone_rating_filter/Dockerfile -t "players_clone_rating_filter:latest" .
 	docker build -f ./servers_avg_rating_duration/Dockerfile -t "servers_avg_rating_duration:latest" .
 	docker build -f ./groupby_match_controller/Dockerfile -t "groupby_match_controller:latest" .
+	docker build -f ./groupby_match_reducer/Dockerfile -t "groupby_match_reducer:latest" .
 .PHONY: docker-image
 
 up: docker-image

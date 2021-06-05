@@ -72,3 +72,31 @@ services:
       - rabbitmq
     environment:
       - PYTHONUNBUFFERED=1
+
+  groupby_match_reducer_0:
+    container_name: groupby_match_reducer_0
+    image: groupby_match_reducer:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=players_reducer_0
+      - OUTPUT_QUEUE=1v1_players
+
+  groupby_match_reducer_1:
+    container_name: groupby_match_reducer_1
+    image: groupby_match_reducer:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=players_reducer_1
+      - OUTPUT_QUEUE=1v1_players

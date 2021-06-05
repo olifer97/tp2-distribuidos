@@ -31,12 +31,15 @@ def main():
 
 
     def callback(ch, method, properties, body):
-        print("[x] Received %r" % body)
+        #print("[x] Received %r" % body)
         match = json.loads(body.decode('utf-8'))
-        match_token = match['match']
-        match_queue = hash(match_token) % K_REDUCERS
-        print(match_queue)
-        channel.basic_publish(exchange='', routing_key='players_reducer_{}'.format(match_queue), body=body)
+        if 'final' in match:
+            for i in range(K_REDUCERS):
+                channel.basic_publish(exchange='', routing_key='players_reducer_{}'.format(i), body=body)
+        else:
+            match_token = match['match']
+            match_queue = hash(match_token) % K_REDUCERS
+            channel.basic_publish(exchange='', routing_key='players_reducer_{}'.format(match_queue), body=body)
 
     channel.basic_consume(
         queue='players_clone_1', on_message_callback=callback, auto_ack=True)
