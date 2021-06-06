@@ -138,7 +138,25 @@ services:
       - OUTPUT_QUEUES_SUFFIX=civ_type%d_reducer_
       - GROUP_BY=civ
   
-  <GROUPBY_CIV_REDUCERS>
+  <GROUPBY_CIV_REDUCERS_3>
+
+  groupby_civ_controller_4:
+    container_name: groupby_civ_controller_4
+    image: groupby_controller:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - K_REDUCERS=%d
+      - INPUT_QUEUE=joined_proplayers_matches
+      - OUTPUT_QUEUES_SUFFIX=civ_type%d_reducer_
+      - GROUP_BY=civ
+  
+  <GROUPBY_CIV_REDUCERS_4>
     
   winner_vs_loser_filter:
     container_name: winner_vs_loser_filter
@@ -261,11 +279,19 @@ def main():
         joiners4_section += JOINERS_FORMAT % (4,i,4, i, "match_proplayers_joiner_{}".format(i), "joined_proplayers_matches")
 
     reducers3_section = ""
-    for i in range(joiners):
+    for i in range(reducers):
         reducers3_section += GROUPBY_CIV_REDUCER_FORMAT % (3,i,3, i, "civ_type3_reducer_{}".format(i), "groupby_civ_3")
 
-    base = BASE_COMPOSE % (joiners, joiners, reducers, reducers, 3)
-    compose = base.replace("<GROUPBY_MATCH_REDUCERS>", reducers_section).replace("<JOINERS_3>", joiners3_section).replace("<JOINERS_4>", joiners4_section).replace("<GROUPBY_CIV_REDUCERS>", reducers3_section)
+    reducers4_section = ""
+    for i in range(reducers):
+        reducers4_section += GROUPBY_CIV_REDUCER_FORMAT % (4,i,4, i, "civ_type4_reducer_{}".format(i), "groupby_civ_4")
+
+    base = BASE_COMPOSE % (joiners, joiners, reducers, reducers, 3 , reducers, 4)
+    compose = base.replace("<GROUPBY_MATCH_REDUCERS>", reducers_section) \
+                  .replace("<JOINERS_3>", joiners3_section) \
+                  .replace("<JOINERS_4>", joiners4_section) \
+                  .replace("<GROUPBY_CIV_REDUCERS_3>", reducers3_section) \
+                  .replace("<GROUPBY_CIV_REDUCERS_4>", reducers4_section) \
 
     with open("docker-compose.yml", "w") as compose_file:
         compose_file.write(compose)
