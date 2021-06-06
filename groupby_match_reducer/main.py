@@ -29,7 +29,6 @@ def parse_config_params():
     return config_params
 
 def groupby_and_filter(matches, callback):
-    #result = []
     for match_token, players in matches.items():
         if len(players) != 2:
             continue
@@ -40,8 +39,6 @@ def groupby_and_filter(matches, callback):
             "rtg_loser": looser['rating']
         }
         callback(match)
-        #result.append(match)
-    #return result
 
 def main():
     config = parse_config_params()

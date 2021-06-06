@@ -82,8 +82,8 @@ services:
 
   
 
-  joiner_0:
-    container_name: joiner_0
+  joiner_type3_0:
+    container_name: joiner_type3_0
     image: joiner:latest
     entrypoint: python3 /main.py
     restart: on-failure
@@ -93,15 +93,15 @@ services:
       - rabbitmq
     environment:
       - PYTHONUNBUFFERED=1
-      - INPUT_QUEUE=match_players_joiner_0
+      - INPUT_QUEUE=match_players_joiner_0 
       - OUTPUT_QUEUE=joined_players_matches
       - LEFT_BY=token
       - RIGHT_BY=match
 
 
 
-  joiner_1:
-    container_name: joiner_1
+  joiner_type3_1:
+    container_name: joiner_type3_1
     image: joiner:latest
     entrypoint: python3 /main.py
     restart: on-failure
@@ -111,15 +111,15 @@ services:
       - rabbitmq
     environment:
       - PYTHONUNBUFFERED=1
-      - INPUT_QUEUE=match_players_joiner_1
+      - INPUT_QUEUE=match_players_joiner_1 
       - OUTPUT_QUEUE=joined_players_matches
       - LEFT_BY=token
       - RIGHT_BY=match
 
 
 
-  joiner_2:
-    container_name: joiner_2
+  joiner_type3_2:
+    container_name: joiner_type3_2
     image: joiner:latest
     entrypoint: python3 /main.py
     restart: on-failure
@@ -129,15 +129,15 @@ services:
       - rabbitmq
     environment:
       - PYTHONUNBUFFERED=1
-      - INPUT_QUEUE=match_players_joiner_2
+      - INPUT_QUEUE=match_players_joiner_2 
       - OUTPUT_QUEUE=joined_players_matches
       - LEFT_BY=token
       - RIGHT_BY=match
 
 
 
-  joiner_3:
-    container_name: joiner_3
+  joiner_type3_3:
+    container_name: joiner_type3_3
     image: joiner:latest
     entrypoint: python3 /main.py
     restart: on-failure
@@ -147,17 +147,108 @@ services:
       - rabbitmq
     environment:
       - PYTHONUNBUFFERED=1
-      - INPUT_QUEUE=match_players_joiner_3
+      - INPUT_QUEUE=match_players_joiner_3 
       - OUTPUT_QUEUE=joined_players_matches
       - LEFT_BY=token
       - RIGHT_BY=match
 
+
+
+  join_controller_4:
+    container_name: join_controller_4
+    image: join_controller:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - K_JOINERS=4
+      - LEFT_INPUT_QUEUE=team_islands_matches
+      - RIGHT_INPUT_QUEUE=players_greater_2000
+      - OUTPUT_QUEUES_SUFFIX=match_proplayers_joiner_
+      - LEFT_BY=token
+      - RIGHT_BY=match
+
+  
+
+  joiner_type4_0:
+    container_name: joiner_type4_0
+    image: joiner:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=match_proplayers_joiner_0 
+      - OUTPUT_QUEUE=joined_proplayers_matches
+      - LEFT_BY=token
+      - RIGHT_BY=match
+
+
+
+  joiner_type4_1:
+    container_name: joiner_type4_1
+    image: joiner:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=match_proplayers_joiner_1 
+      - OUTPUT_QUEUE=joined_proplayers_matches
+      - LEFT_BY=token
+      - RIGHT_BY=match
+
+
+
+  joiner_type4_2:
+    container_name: joiner_type4_2
+    image: joiner:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=match_proplayers_joiner_2 
+      - OUTPUT_QUEUE=joined_proplayers_matches
+      - LEFT_BY=token
+      - RIGHT_BY=match
+
+
+
+  joiner_type4_3:
+    container_name: joiner_type4_3
+    image: joiner:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=match_proplayers_joiner_3 
+      - OUTPUT_QUEUE=joined_proplayers_matches
+      - LEFT_BY=token
+      - RIGHT_BY=match
 
       
 
   groupby_match_controller:
     container_name: groupby_match_controller
-    image: groupby_match_controller:latest
+    image: groupby_controller:latest
     entrypoint: python3 /main.py
     restart: on-failure
     depends_on:
@@ -167,6 +258,9 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - K_REDUCERS=2
+      - INPUT_QUEUE=players_clone_1
+      - OUTPUT_QUEUES_SUFFIX=players_reducer_
+      - GROUP_BY=match
 
   
 
@@ -199,6 +293,92 @@ services:
       - PYTHONUNBUFFERED=1
       - INPUT_QUEUE=players_reducer_1
       - OUTPUT_QUEUE=1v1_players
+
+
+
+  groupby_civ_controller_3:
+    container_name: groupby_civ_controller_3
+    image: groupby_controller:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - K_REDUCERS=2
+      - INPUT_QUEUE=joined_players_matches
+      - OUTPUT_QUEUES_SUFFIX=civ_type3_reducer_
+      - GROUP_BY=civ
+  
+  
+
+  groupby_civ_reducer_type3_0:
+    container_name: groupby_civ_reducer_type3_0
+    image: groupby_civ_reducer:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=civ_type3_reducer_0 
+      - OUTPUT_QUEUE=groupby_civ_3
+      - GROUP_BY=civ
+
+
+
+  groupby_civ_reducer_type3_1:
+    container_name: groupby_civ_reducer_type3_1
+    image: groupby_civ_reducer:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=civ_type3_reducer_1 
+      - OUTPUT_QUEUE=groupby_civ_3
+      - GROUP_BY=civ
+
+
+
+  groupby_civ_reducer_type3_2:
+    container_name: groupby_civ_reducer_type3_2
+    image: groupby_civ_reducer:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=civ_type3_reducer_2 
+      - OUTPUT_QUEUE=groupby_civ_3
+      - GROUP_BY=civ
+
+
+
+  groupby_civ_reducer_type3_3:
+    container_name: groupby_civ_reducer_type3_3
+    image: groupby_civ_reducer:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=civ_type3_reducer_3 
+      - OUTPUT_QUEUE=groupby_civ_3
+      - GROUP_BY=civ
 
 
     

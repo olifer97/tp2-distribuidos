@@ -47,7 +47,7 @@ def main():
 
     def left_callback(ch, method, properties, body):
         #print("[x] Received %r" % body)
-        print("[x] Received left")
+        #print("[x] Received left")
         data = json.loads(body.decode('utf-8'))
         if 'final' in data:
             for i in range(config['joiners']):
@@ -59,7 +59,7 @@ def main():
             channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],queue), body=message)
 
     def right_callback(ch, method, properties, body):
-        print("[x] Received right")
+        #print("[x] Received right")
         data = json.loads(body.decode('utf-8'))
         if 'final' in data:
             for i in range(config['joiners']):

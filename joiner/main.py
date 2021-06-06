@@ -35,13 +35,13 @@ def join(matches, callback):
         left = left_and_right["left_by"]
         right = left_and_right["right_by"]
         if len(left) == 0 or len(right) == 0:
-            #print("salteo")
             continue
         for l in left:
             for r in right:
                 joined = {**l, **r}
                 print(joined)
                 callback(joined)
+    callback({"final": True})
 
 def main():
     config = parse_config_params()
@@ -58,6 +58,7 @@ def main():
         #print("[x] Received %r" % body)
         msg = json.loads(body.decode('utf-8'))
         if 'final' in msg:
+            print("[x] Received %r" % body)
             def send(data):
                 channel.basic_publish(exchange='', routing_key=config['output_queue'], body=json.dumps(data))
             join(matches, send)
@@ -71,7 +72,7 @@ def main():
                 matches[key] = {"left_by": [], "right_by": []}
                 
             matches[key][side].append(data)
-            print(matches[key])
+            #print(matches[key])
             
         
 

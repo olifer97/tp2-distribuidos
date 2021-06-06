@@ -82,12 +82,31 @@ services:
       - LEFT_BY=token
       - RIGHT_BY=match
 
-  <JOINERS>
-      
+  <JOINERS_3>
+
+  join_controller_4:
+    container_name: join_controller_4
+    image: join_controller:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - K_JOINERS=%d
+      - LEFT_INPUT_QUEUE=team_islands_matches
+      - RIGHT_INPUT_QUEUE=players_greater_2000
+      - OUTPUT_QUEUES_SUFFIX=match_proplayers_joiner_
+      - LEFT_BY=token
+      - RIGHT_BY=match
+
+  <JOINERS_4>      
 
   groupby_match_controller:
     container_name: groupby_match_controller
-    image: groupby_match_controller:latest
+    image: groupby_controller:latest
     entrypoint: python3 /main.py
     restart: on-failure
     depends_on:
@@ -97,8 +116,29 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - K_REDUCERS=%d
+      - INPUT_QUEUE=players_clone_1
+      - OUTPUT_QUEUES_SUFFIX=players_reducer_
+      - GROUP_BY=match
 
   <GROUPBY_MATCH_REDUCERS>
+
+  groupby_civ_controller_3:
+    container_name: groupby_civ_controller_3
+    image: groupby_controller:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - K_REDUCERS=%d
+      - INPUT_QUEUE=joined_players_matches
+      - OUTPUT_QUEUES_SUFFIX=civ_type%d_reducer_
+      - GROUP_BY=civ
+  
+  <GROUPBY_CIV_REDUCERS>
     
   winner_vs_loser_filter:
     container_name: winner_vs_loser_filter
@@ -165,10 +205,29 @@ GROUPBY_MATCH_REDUCER_FORMAT = """
 
 """
 
+GROUPBY_CIV_REDUCER_FORMAT = """
+
+  groupby_civ_reducer_type%d_%d:
+    container_name: groupby_civ_reducer_type%d_%d
+    image: groupby_civ_reducer:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=%s 
+      - OUTPUT_QUEUE=%s
+      - GROUP_BY=civ
+
+"""
+
 JOINERS_FORMAT = """
 
-  joiner_%d:
-    container_name: joiner_%d
+  joiner_type%d_%d:
+    container_name: joiner_type%d_%d
     image: joiner:latest
     entrypoint: python3 /main.py
     restart: on-failure
@@ -178,27 +237,35 @@ JOINERS_FORMAT = """
       - rabbitmq
     environment:
       - PYTHONUNBUFFERED=1
-      - INPUT_QUEUE=match_players_joiner_%d
-      - OUTPUT_QUEUE=joined_players_matches
+      - INPUT_QUEUE=%s 
+      - OUTPUT_QUEUE=%s
       - LEFT_BY=token
       - RIGHT_BY=match
 
 """
 
 def main():
-    groupby_match_reducers = int(sys.argv[1])
+    reducers = int(sys.argv[1])
     joiners = int(sys.argv[2])
 
     reducers_section = ""
-    for i in range(groupby_match_reducers):
+    for i in range(reducers):
         reducers_section += GROUPBY_MATCH_REDUCER_FORMAT % (i, i, i)
 
-    joiners_section = ""
+    joiners3_section = ""
     for i in range(joiners):
-        joiners_section += JOINERS_FORMAT % (i, i, i)
+        joiners3_section += JOINERS_FORMAT % (3,i,3, i, "match_players_joiner_{}".format(i), "joined_players_matches")
 
-    base = BASE_COMPOSE % (joiners, groupby_match_reducers)
-    compose = base.replace("<GROUPBY_MATCH_REDUCERS>", reducers_section).replace("<JOINERS>", joiners_section)
+    joiners4_section = ""
+    for i in range(joiners):
+        joiners4_section += JOINERS_FORMAT % (4,i,4, i, "match_proplayers_joiner_{}".format(i), "joined_proplayers_matches")
+
+    reducers3_section = ""
+    for i in range(joiners):
+        reducers3_section += GROUPBY_CIV_REDUCER_FORMAT % (3,i,3, i, "civ_type3_reducer_{}".format(i), "groupby_civ_3")
+
+    base = BASE_COMPOSE % (joiners, joiners, reducers, reducers, 3)
+    compose = base.replace("<GROUPBY_MATCH_REDUCERS>", reducers_section).replace("<JOINERS_3>", joiners3_section).replace("<JOINERS_4>", joiners4_section).replace("<GROUPBY_CIV_REDUCERS>", reducers3_section)
 
     with open("docker-compose.yml", "w") as compose_file:
         compose_file.write(compose)
