@@ -35,9 +35,10 @@ def join(matches, callback):
         left = left_and_right["left_by"]
         right = left_and_right["right_by"]
         if len(left) == 0 or len(right) == 0:
+            #print("salteo")
             continue
         for l in left:
-            for r in rigth:
+            for r in right:
                 joined = {**l, **r}
                 print(joined)
                 callback(joined)
@@ -54,7 +55,7 @@ def main():
     matches = {}
 
     def callback(ch, method, properties, body):
-        print("[x] Received %r" % body)
+        #print("[x] Received %r" % body)
         msg = json.loads(body.decode('utf-8'))
         if 'final' in msg:
             def send(data):
@@ -70,6 +71,7 @@ def main():
                 matches[key] = {"left_by": [], "right_by": []}
                 
             matches[key][side].append(data)
+            print(matches[key])
             
         
 

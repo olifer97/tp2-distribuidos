@@ -73,7 +73,7 @@ services:
       - rabbitmq
     environment:
       - PYTHONUNBUFFERED=1
-      - K_JOINERS=2
+      - K_JOINERS=4
       - LEFT_INPUT_QUEUE=1v1_arena_matches
       - RIGHT_INPUT_QUEUE=players_clone_2
       - OUTPUT_QUEUES_SUFFIX=match_players_joiner_
@@ -112,6 +112,42 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - INPUT_QUEUE=match_players_joiner_1
+      - OUTPUT_QUEUE=joined_players_matches
+      - LEFT_BY=token
+      - RIGHT_BY=match
+
+
+
+  joiner_2:
+    container_name: joiner_2
+    image: joiner:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=match_players_joiner_2
+      - OUTPUT_QUEUE=joined_players_matches
+      - LEFT_BY=token
+      - RIGHT_BY=match
+
+
+
+  joiner_3:
+    container_name: joiner_3
+    image: joiner:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=match_players_joiner_3
       - OUTPUT_QUEUE=joined_players_matches
       - LEFT_BY=token
       - RIGHT_BY=match
