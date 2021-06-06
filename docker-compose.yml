@@ -62,6 +62,63 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
 
+  join_controller_3:
+    container_name: join_controller_3
+    image: join_controller:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - K_JOINERS=2
+      - LEFT_INPUT_QUEUE=1v1_arena_matches
+      - RIGHT_INPUT_QUEUE=players_clone_2
+      - OUTPUT_QUEUES_SUFFIX=match_players_joiner_
+      - LEFT_BY=token
+      - RIGHT_BY=match
+
+  
+
+  joiner_0:
+    container_name: joiner_0
+    image: joiner:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=match_players_joiner_0
+      - OUTPUT_QUEUE=joined_players_matches
+      - LEFT_BY=token
+      - RIGHT_BY=match
+
+
+
+  joiner_1:
+    container_name: joiner_1
+    image: joiner:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=match_players_joiner_1
+      - OUTPUT_QUEUE=joined_players_matches
+      - LEFT_BY=token
+      - RIGHT_BY=match
+
+
+      
+
   groupby_match_controller:
     container_name: groupby_match_controller
     image: groupby_match_controller:latest

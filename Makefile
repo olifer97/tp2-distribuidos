@@ -22,6 +22,14 @@ players_clone_rating_filter:
 	docker build -f ./players_clone_rating_filter/Dockerfile -t "players_clone_rating_filter:latest" .
 .PHONY: players_clone_rating_filter
 
+join_controller:
+	docker build -f ./join_controller/Dockerfile -t "join_controller:latest" .
+.PHONY: join_controller
+
+joiner:
+	docker build -f ./joiner/Dockerfile -t "joiner:latest" .
+.PHONY: joiner
+
 groupby_match_controller:
 	docker build -f ./groupby_match_controller/Dockerfile -t "groupby_match_controller:latest" .
 .PHONY: groupby_match_controller
@@ -47,6 +55,8 @@ docker-image:
 	docker build -f ./groupby_match_reducer/Dockerfile -t "groupby_match_reducer:latest" .
 	docker build -f ./winner_vs_loser_filter/Dockerfile -t "winner_vs_loser_filter:latest" .
 	docker build -f ./map_no_mirror_filter/Dockerfile -t "map_no_mirror_filter:latest" .
+	docker build -f ./join_controller/Dockerfile -t "join_controller:latest" .
+	docker build -f ./joiner/Dockerfile -t "joiner:latest" .
 .PHONY: docker-image
 
 up: docker-image

@@ -64,6 +64,27 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
 
+  join_controller_3:
+    container_name: join_controller_3
+    image: join_controller:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - K_JOINERS=%d
+      - LEFT_INPUT_QUEUE=1v1_arena_matches
+      - RIGHT_INPUT_QUEUE=players_clone_2
+      - OUTPUT_QUEUES_SUFFIX=match_players_joiner_
+      - LEFT_BY=token
+      - RIGHT_BY=match
+
+  <JOINERS>
+      
+
   groupby_match_controller:
     container_name: groupby_match_controller
     image: groupby_match_controller:latest
@@ -144,16 +165,40 @@ GROUPBY_MATCH_REDUCER_FORMAT = """
 
 """
 
+JOINERS_FORMAT = """
+
+  joiner_%d:
+    container_name: joiner_%d
+    image: joiner:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=match_players_joiner_%d
+      - OUTPUT_QUEUE=joined_players_matches
+      - LEFT_BY=token
+      - RIGHT_BY=match
+
+"""
+
 def main():
     groupby_match_reducers = int(sys.argv[1])
+    joiners = int(sys.argv[2])
 
     reducers_section = ""
-
     for i in range(groupby_match_reducers):
         reducers_section += GROUPBY_MATCH_REDUCER_FORMAT % (i, i, i)
 
-    base = BASE_COMPOSE % (groupby_match_reducers)
-    compose = base.replace("<GROUPBY_MATCH_REDUCERS>", reducers_section)
+    joiners_section = ""
+    for i in range(joiners):
+        joiners_section += JOINERS_FORMAT % (i, i, i)
+
+    base = BASE_COMPOSE % (joiners, groupby_match_reducers)
+    compose = base.replace("<GROUPBY_MATCH_REDUCERS>", reducers_section).replace("<JOINERS>", joiners_section)
 
     with open("docker-compose.yml", "w") as compose_file:
         compose_file.write(compose)
