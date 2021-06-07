@@ -402,3 +402,4 @@ services:
       - INPUT_QUEUE=groupby_civ_4
       - OUTPUT_QUEUE=4
       - TOP_N=5
+      - SENTINELS=2

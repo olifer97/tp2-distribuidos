@@ -232,6 +232,7 @@ services:
       - INPUT_QUEUE=groupby_civ_4
       - OUTPUT_QUEUE=4
       - TOP_N=5
+      - SENTINELS=%d
 """
 
 GROUPBY_MATCH_REDUCER_FORMAT = """
@@ -315,7 +316,7 @@ def main():
     for i in range(reducers):
         reducers4_section += GROUPBY_CIV_REDUCER_FORMAT % (4,i,4, i, "civ_type4_reducer_{}".format(i), "groupby_civ_4")
 
-    base = BASE_COMPOSE % (joiners, joiners, reducers, reducers, 3 , reducers, 4)
+    base = BASE_COMPOSE % (joiners, joiners, reducers, reducers, 3 , reducers, 4, reducers)
     compose = base.replace("<GROUPBY_MATCH_REDUCERS>", reducers_section) \
                   .replace("<JOINERS_3>", joiners3_section) \
                   .replace("<JOINERS_4>", joiners4_section) \

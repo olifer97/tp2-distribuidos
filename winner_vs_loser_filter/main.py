@@ -42,6 +42,9 @@ def main():
         #print("[x] Received %r" % body)
         players = json.loads(body.decode('utf-8'))
 
+        if 'final' in players:
+            return
+
         winner_string_rating = players['rtg_winner']
         winner_rating = 0 if winner_string_rating == '' else float(winner_string_rating)
 

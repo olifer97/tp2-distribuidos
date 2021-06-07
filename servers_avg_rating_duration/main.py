@@ -43,6 +43,8 @@ def main():
     def callback(ch, method, properties, body):
         #print("[x] Received %r" % body)
         match = json.loads(body.decode('utf-8'))
+        if 'final' in match:
+            return
         server = match['server']
         string_avg_rating = match['average_rating']
         avg_rating = 0 if string_avg_rating == '' else float(string_avg_rating)

@@ -21,6 +21,7 @@ def parse_config_params():
         config_params["input_queue"] = os.environ["INPUT_QUEUE"]
         config_params["output_queue"] = os.environ["OUTPUT_QUEUE"]
         config_params['top_n'] = int(os.environ["TOP_N"])
+        config_params['sentinels'] = int(os.environ["SENTINELS"])
     except KeyError as e:
         raise KeyError(
             "Key was not found. Error: {} .Aborting server".format(e))
@@ -51,14 +52,18 @@ def main():
     channel.queue_declare(queue=config['output_queue'])
 
     top_civ = []
+    sentinels = 0
 
     def callback(ch, method, properties, body):
         print("[x] Received %r" % body)
         msg = json.loads(body.decode('utf-8'))
         if 'final' in msg:
-            def send(data):
-                channel.basic_publish(exchange='', routing_key=config['output_queue'], body=json.dumps(data))
-            top_n(top_civ, config['top_n'], send)
+            nonlocal sentinels
+            sentinels += 1
+            if sentinels == config['sentinels']:
+                def send(data):
+                    channel.basic_publish(exchange='', routing_key=config['output_queue'], body=json.dumps(data))
+                top_n(top_civ, config['top_n'], send)
                 
         else:
             civ = msg['civ']

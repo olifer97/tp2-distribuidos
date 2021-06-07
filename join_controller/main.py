@@ -45,13 +45,18 @@ def main():
         channel.queue_declare(queue='{}{}'.format(config['output_queues_suffix'],i))
 
 
+    sentinels = 0
+
     def left_callback(ch, method, properties, body):
         #print("[x] Received %r" % body)
         #print("[x] Received left")
         data = json.loads(body.decode('utf-8'))
         if 'final' in data:
-            for i in range(config['joiners']):
-                channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],i), body=body)
+            nonlocal sentinels
+            sentinels += 1
+            if sentinels == 2:
+                for i in range(config['joiners']):
+                    channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],i), body=body)
         else:
             token = data[config['left_by']]
             queue = hash(token) % config['joiners']
@@ -62,8 +67,11 @@ def main():
         #print("[x] Received right")
         data = json.loads(body.decode('utf-8'))
         if 'final' in data:
-            for i in range(config['joiners']):
-                channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],i), body=body)
+            nonlocal sentinels
+            sentinels += 1
+            if sentinels == 2:
+                for i in range(config['joiners']):
+                    channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],i), body=body)
         else:
             token = data[config['right_by']]
             queue = hash(token) % config['joiners']

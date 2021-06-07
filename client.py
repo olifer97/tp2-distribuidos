@@ -21,6 +21,7 @@ def loadMatches():
             j += 1
             channel.basic_publish(exchange='', routing_key='matches', body=json.dumps(rows))
             if j==200000:break
+        channel.basic_publish(exchange='', routing_key='matches', body=json.dumps({"final": True}))
     connection.close()
     
 def loadPlayers():

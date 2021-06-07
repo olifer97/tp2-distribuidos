@@ -44,9 +44,12 @@ def main():
         #print("[x] Received %r" % body)
         match = json.loads(body.decode('utf-8'))
 
-        if match['map'] == config['map']:
-            if not config['no_mirror'] or (config['no_mirror'] and match['mirror'] == 'False'):
-                channel.basic_publish(exchange='', routing_key=config['output_queue'], body=body)
+        if 'final' in match:
+            channel.basic_publish(exchange='', routing_key=config['output_queue'], body=body)
+        else:
+            if match['map'] == config['map']:
+                if not config['no_mirror'] or (config['no_mirror'] and match['mirror'] == 'False'):
+                    channel.basic_publish(exchange='', routing_key=config['output_queue'], body=body)
                     
 
     channel.basic_consume(

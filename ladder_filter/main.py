@@ -31,12 +31,14 @@ def main():
     def callback(ch, method, properties, body):
         #print("[x] Received %r" % body)
         match = json.loads(body.decode('utf-8'))
-        if match['ladder'] == 'RM_TEAM':
-            #print("ITS TEAM")
+        if 'final' in match:
             channel.basic_publish(exchange='', routing_key='team_matches', body=body)
-        elif match['ladder'] == 'RM_1v1':
-            #print("ITS 1V1")
             channel.basic_publish(exchange='', routing_key='1v1_matches', body=body)
+        else:
+            if match['ladder'] == 'RM_TEAM':
+                channel.basic_publish(exchange='', routing_key='team_matches', body=body)
+            elif match['ladder'] == 'RM_1v1':
+                channel.basic_publish(exchange='', routing_key='1v1_matches', body=body)
 
     channel.basic_consume(
         queue='clone_2_matches', on_message_callback=callback, auto_ack=True)
