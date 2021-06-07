@@ -203,6 +203,35 @@ services:
       - OUTPUT_QUEUE=team_islands_matches
       - MAP=islands
       - NO_MIRROR=null
+
+  winner_filter_percentage_calculator:
+    container_name: winner_filter_percentage_calculator
+    image: winner_filter_percentage_calculator:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=groupby_civ_3
+      - OUTPUT_QUEUE=3
+
+  top_civilizations:
+    container_name: top_civilizations
+    image: top_civilizations:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=groupby_civ_4
+      - OUTPUT_QUEUE=4
+      - TOP_N=5
 """
 
 GROUPBY_MATCH_REDUCER_FORMAT = """

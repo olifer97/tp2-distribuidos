@@ -36,6 +36,7 @@ def groupby(data, groupby_key, callback):
             "rows": rows,
         }
         callback(grouped_rows)
+    callback({"final": True})
 
 def main():
     config = parse_config_params()
@@ -49,7 +50,7 @@ def main():
     data = {}
 
     def callback(ch, method, properties, body):
-        print("[x] Received %r" % body)
+        #print("[x] Received %r" % body)
         msg = json.loads(body.decode('utf-8'))
         if 'final' in msg:
             def send(data):

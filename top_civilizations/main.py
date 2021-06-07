@@ -3,6 +3,7 @@ import pika
 import time
 import json
 import os
+import heapq
 
 import logging
 
@@ -17,10 +18,9 @@ def parse_config_params():
     """
     config_params = {}
     try:
-        config_params["reducers"] = int(os.environ["K_REDUCERS"])
-        config_params['input_queue'] = os.environ['INPUT_QUEUE']
-        config_params['output_queues_suffix'] = os.environ['OUTPUT_QUEUES_SUFFIX']
-        config_params["group_by"] = os.environ["GROUP_BY"]
+        config_params["input_queue"] = os.environ["INPUT_QUEUE"]
+        config_params["output_queue"] = os.environ["OUTPUT_QUEUE"]
+        config_params['top_n'] = int(os.environ["TOP_N"])
     except KeyError as e:
         raise KeyError(
             "Key was not found. Error: {} .Aborting server".format(e))
@@ -30,28 +30,43 @@ def parse_config_params():
 
     return config_params
 
+def top_n(top_civ, n, callback):
+    print(top_civ)
+    top = heapq.nlargest(n, top_civ)
+    print(top)
+    for amount, civ in top:
+        civ = {
+            "civ": civ,
+            "amount": amount,
+        }
+        callback(civ)
+
 def main():
     config = parse_config_params()
-
     connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='rabbitmq'))
 
     channel = connection.channel()
     channel.queue_declare(queue=config['input_queue'])
-    for i in range(config['reducers']):
-        channel.queue_declare(queue='{}{}'.format(config['output_queues_suffix'],i))
+    channel.queue_declare(queue=config['output_queue'])
 
+    top_civ = []
 
     def callback(ch, method, properties, body):
-        #print("[x] Received %r" % body)
+        print("[x] Received %r" % body)
         msg = json.loads(body.decode('utf-8'))
         if 'final' in msg:
-            for i in range(config['reducers']):
-                channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],i), body=body)
+            def send(data):
+                channel.basic_publish(exchange='', routing_key=config['output_queue'], body=json.dumps(data))
+            top_n(top_civ, config['top_n'], send)
+                
         else:
-            key = msg[config['group_by']]
-            queue = hash(key) % config['reducers']
-            channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],queue), body=body)
+            civ = msg['civ']
+            amount = len(msg['rows'])
+            print((amount, civ))
+            heapq.heappush(top_civ, (amount, civ)) 
+            
+        
 
     channel.basic_consume(
         queue=config['input_queue'], on_message_callback=callback, auto_ack=True)

@@ -46,9 +46,17 @@ winner_vs_loser_filter:
 	docker build -f ./winner_vs_loser_filter/Dockerfile -t "winner_vs_loser_filter:latest" .
 .PHONY: winner_vs_loser_filter
 
+winner_filter_percentage_calculator:
+	docker build -f ./winner_filter_percentage_calculator/Dockerfile -t "winner_filter_percentage_calculator:latest" .
+.PHONY: winner_filter_percentage_calculator
+
 map_no_mirror_filter:
 	docker build -f ./map_no_mirror_filter/Dockerfile -t "map_no_mirror_filter:latest" .
 .PHONY: map_no_mirror_filter
+
+top_civilizations:
+	docker build -f ./top_civilizations/Dockerfile -t "top_civilizations:latest" .
+.PHONY: top_civilizations
 
 image:
 	docker build -f ./matches_spliter/Dockerfile -t "matches_spliter:latest" .
@@ -62,6 +70,8 @@ image:
 	docker build -f ./map_no_mirror_filter/Dockerfile -t "map_no_mirror_filter:latest" .
 	docker build -f ./join_controller/Dockerfile -t "join_controller:latest" .
 	docker build -f ./joiner/Dockerfile -t "joiner:latest" .
+	docker build -f ./winner_filter_percentage_calculator/Dockerfile -t "winner_filter_percentage_calculator:latest" .
+	docker build -f ./top_civilizations/Dockerfile -t "top_civilizations:latest" .
 .PHONY: image
 
 up: image

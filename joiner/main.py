@@ -39,7 +39,7 @@ def join(matches, callback):
         for l in left:
             for r in right:
                 joined = {**l, **r}
-                print(joined)
+                #print(joined)
                 callback(joined)
     callback({"final": True})
 
@@ -58,7 +58,7 @@ def main():
         #print("[x] Received %r" % body)
         msg = json.loads(body.decode('utf-8'))
         if 'final' in msg:
-            print("[x] Received %r" % body)
+            #print("[x] Received %r" % body)
             def send(data):
                 channel.basic_publish(exchange='', routing_key=config['output_queue'], body=json.dumps(data))
             join(matches, send)
