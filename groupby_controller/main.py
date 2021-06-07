@@ -45,11 +45,13 @@ def main():
     sentinels = 0
 
     def callback(ch, method, properties, body):
-        #print("[x] Received %r" % body)
+        print("[x] Received %r" % body)
         msg = json.loads(body.decode('utf-8'))
         if 'final' in msg:
             nonlocal sentinels
             sentinels += 1
+            print(sentinels)
+            print(config['sentinels'])
             if sentinels == config['sentinels']:
                 for i in range(config['reducers']):
                     channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],i), body=body)

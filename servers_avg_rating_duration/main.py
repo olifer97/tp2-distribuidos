@@ -41,9 +41,10 @@ def main():
     channel.queue_declare(queue='1')
 
     def callback(ch, method, properties, body):
-        #print("[x] Received %r" % body)
+        print("[x] Received %r" % body)
         match = json.loads(body.decode('utf-8'))
         if 'final' in match:
+            channel.basic_publish(exchange='', routing_key='1', body=body)
             return
         server = match['server']
         string_avg_rating = match['average_rating']

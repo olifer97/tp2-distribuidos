@@ -344,6 +344,7 @@ services:
       - PYTHONUNBUFFERED=1
       - INPUT_QUEUE=1v1_players
       - OUTPUT_QUEUE=2
+      - SENTINELS=2
     
   arena_filter:
     container_name: arena_filter

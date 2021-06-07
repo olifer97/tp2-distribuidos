@@ -32,13 +32,14 @@ def groupby_and_filter(matches, callback):
     for match_token, players in matches.items():
         if len(players) != 2:
             continue
-        winner, looser = (players[0], players[1]) if players[0]['winner'] else (players[1], players[0])
+        winner, looser = (players[0], players[1]) if players[0]['winner'] == 'True' else (players[1], players[0])
         match = {
             "match": match_token,
             "rtg_winner": winner['rating'],
             "rtg_loser": looser['rating']
         }
         callback(match)
+    callback({"final": True})
 
 def main():
     config = parse_config_params()
@@ -52,7 +53,7 @@ def main():
     matches = {}
 
     def callback(ch, method, properties, body):
-        #print("[x] Received %r" % body)
+        print("[x] Received %r" % body)
         msg = json.loads(body.decode('utf-8'))
         if 'final' in msg:
             def send(data):

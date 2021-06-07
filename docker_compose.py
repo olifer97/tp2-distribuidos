@@ -174,6 +174,7 @@ services:
       - PYTHONUNBUFFERED=1
       - INPUT_QUEUE=1v1_players
       - OUTPUT_QUEUE=2
+      - SENTINELS=%d
     
   arena_filter:
     container_name: arena_filter
@@ -319,7 +320,7 @@ def main():
     for i in range(reducers):
         reducers4_section += GROUPBY_CIV_REDUCER_FORMAT % (4,i,4, i, "civ_type4_reducer_{}".format(i), "groupby_civ_4")
 
-    base = BASE_COMPOSE % (joiners, joiners, reducers, reducers, joiners, reducers, joiners, reducers)
+    base = BASE_COMPOSE % (joiners, joiners, reducers, reducers, joiners, reducers, joiners,reducers, reducers)
     compose = base.replace("<GROUPBY_MATCH_REDUCERS>", reducers_section) \
                   .replace("<JOINERS_3>", joiners3_section) \
                   .replace("<JOINERS_4>", joiners4_section) \
