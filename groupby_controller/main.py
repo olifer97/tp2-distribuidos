@@ -21,6 +21,7 @@ def parse_config_params():
         config_params['input_queue'] = os.environ['INPUT_QUEUE']
         config_params['output_queues_suffix'] = os.environ['OUTPUT_QUEUES_SUFFIX']
         config_params["group_by"] = os.environ["GROUP_BY"]
+        config_params['sentinels'] = int(os.environ["SENTINELS"])
     except KeyError as e:
         raise KeyError(
             "Key was not found. Error: {} .Aborting server".format(e))
@@ -41,13 +42,17 @@ def main():
     for i in range(config['reducers']):
         channel.queue_declare(queue='{}{}'.format(config['output_queues_suffix'],i))
 
+    sentinels = 0
 
     def callback(ch, method, properties, body):
         #print("[x] Received %r" % body)
         msg = json.loads(body.decode('utf-8'))
         if 'final' in msg:
-            for i in range(config['reducers']):
-                channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],i), body=body)
+            nonlocal sentinels
+            sentinels += 1
+            if sentinels == config['sentinels']:
+                for i in range(config['reducers']):
+                    channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],i), body=body)
         else:
             key = msg[config['group_by']]
             queue = hash(key) % config['reducers']

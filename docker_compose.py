@@ -119,6 +119,7 @@ services:
       - INPUT_QUEUE=players_clone_1
       - OUTPUT_QUEUES_SUFFIX=players_reducer_
       - GROUP_BY=match
+      - SENTINELS=1
 
   <GROUPBY_MATCH_REDUCERS>
 
@@ -135,8 +136,9 @@ services:
       - PYTHONUNBUFFERED=1
       - K_REDUCERS=%d
       - INPUT_QUEUE=joined_players_matches
-      - OUTPUT_QUEUES_SUFFIX=civ_type%d_reducer_
+      - OUTPUT_QUEUES_SUFFIX=civ_type3_reducer_
       - GROUP_BY=civ
+      - SENTINELS=%d
   
   <GROUPBY_CIV_REDUCERS_3>
 
@@ -153,8 +155,9 @@ services:
       - PYTHONUNBUFFERED=1
       - K_REDUCERS=%d
       - INPUT_QUEUE=joined_proplayers_matches
-      - OUTPUT_QUEUES_SUFFIX=civ_type%d_reducer_
+      - OUTPUT_QUEUES_SUFFIX=civ_type4_reducer_
       - GROUP_BY=civ
+      - SENTINELS=%d
   
   <GROUPBY_CIV_REDUCERS_4>
     
@@ -316,7 +319,7 @@ def main():
     for i in range(reducers):
         reducers4_section += GROUPBY_CIV_REDUCER_FORMAT % (4,i,4, i, "civ_type4_reducer_{}".format(i), "groupby_civ_4")
 
-    base = BASE_COMPOSE % (joiners, joiners, reducers, reducers, 3 , reducers, 4, reducers)
+    base = BASE_COMPOSE % (joiners, joiners, reducers, reducers, joiners, reducers, joiners, reducers)
     compose = base.replace("<GROUPBY_MATCH_REDUCERS>", reducers_section) \
                   .replace("<JOINERS_3>", joiners3_section) \
                   .replace("<JOINERS_4>", joiners4_section) \

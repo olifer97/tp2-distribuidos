@@ -38,6 +38,8 @@ def main():
     channel.queue_declare(queue=config['input_queue'])
     channel.queue_declare(queue=config['output_queue'])
 
+    sentinels = 0
+
     def callback(ch, method, properties, body):
         #print("[x] Received %r" % body)
         rows_by_civ = json.loads(body.decode('utf-8'))

@@ -189,6 +189,7 @@ services:
       - INPUT_QUEUE=players_clone_1
       - OUTPUT_QUEUES_SUFFIX=players_reducer_
       - GROUP_BY=match
+      - SENTINELS=1
 
   
 
@@ -239,6 +240,7 @@ services:
       - INPUT_QUEUE=joined_players_matches
       - OUTPUT_QUEUES_SUFFIX=civ_type3_reducer_
       - GROUP_BY=civ
+      - SENTINELS=2
   
   
 
@@ -291,6 +293,7 @@ services:
       - INPUT_QUEUE=joined_proplayers_matches
       - OUTPUT_QUEUES_SUFFIX=civ_type4_reducer_
       - GROUP_BY=civ
+      - SENTINELS=2
   
   
 
