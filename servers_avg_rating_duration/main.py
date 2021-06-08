@@ -3,7 +3,7 @@ import pika
 import time
 import json
 from datetime import datetime, timedelta
-from custom_queue import Queue
+from custom_queue import Queue, connect
 
 import logging
 
@@ -34,8 +34,9 @@ def to_timedelta(string_time):
     return timedelta(days=t.day, hours=t.hour, minutes=t.minute, seconds=t.second)
 
 def main():
+    connection, channel = connect('rabbitmq')
 
-    output_queue = Queue('rabbitmq', output_queue='1')
+    output_queue = Queue(connection, channel, output_queue='1')
 
     def callback(match):
         if 'final' in match:
@@ -52,7 +53,7 @@ def main():
                     logging.info("Found match")
                     output_queue.send_bytes(json.dumps(match))
 
-    input_queue = Queue('rabbitmq', input_queue='clone_1_matches', callback=callback)
+    input_queue = Queue(connection, channel, input_queue='clone_1_matches', callback=callback)
 
 
 

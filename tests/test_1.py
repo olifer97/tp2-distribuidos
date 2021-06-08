@@ -10,7 +10,7 @@ import logging
 import sys
 sys.path.append('../')
 
-from common.custom_queue import Queue
+from common.custom_queue import Queue, connect
 from utils import load
 
 SOLUTION = set(["YES_1", "YES_2", "YES_3"])
@@ -30,7 +30,8 @@ def main():
         if match['token'] not in SOLUTION:
             print('Test Error received {} not expected'.format(match))
 
-    queue = Queue('localhost', input_queue='1', callback=callback, iterate=False)
+    connection, channel = connect('localhost')
+    queue = Queue(connection, channel, input_queue='1', callback=callback, iterate=False)
 
 if __name__ == "__main__":
     logging.basicConfig(

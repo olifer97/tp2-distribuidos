@@ -1,8 +1,9 @@
-from common.custom_queue import Queue
+from common.custom_queue import Queue, connect
 import csv
 
 def load(csv_name, queue_name, total_rows = 0, size_msg = 1 ):
-    queue = Queue('localhost', output_queue=queue_name, size_msg=size_msg)
+    connection, channel = connect('localhost')
+    queue = Queue(connection, channel, output_queue=queue_name, size_msg=size_msg)
 
     with open(csv_name, encoding='utf-8') as csvf:
         csvReader = csv.DictReader(csvf)

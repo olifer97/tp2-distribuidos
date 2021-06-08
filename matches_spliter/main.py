@@ -2,7 +2,7 @@
 import pika
 import time
 import json
-from custom_queue import Queue
+from custom_queue import Queue, connect
 
 import logging
 
@@ -21,14 +21,16 @@ def parse_config_params():
 
 def main():
 
-    queue_1 = Queue('rabbitmq', output_queue='clone_1_matches')
-    queue_2 = Queue('rabbitmq', output_queue='clone_2_matches')
+    connection, channel = connect('rabbitmq')
+
+    queue_1 = Queue(connection, channel, output_queue='clone_1_matches')
+    queue_2 = Queue(connection, channel, output_queue='clone_2_matches')
         
     def callback(body):
         queue_1.send_bytes(body)
         queue_2.send_bytes(body)
 
-    queue = Queue('rabbitmq', input_queue='matches', callback=callback, iterate=False)
+    queue = Queue(connection, channel, input_queue='matches', callback=callback, iterate=False)
     
 
 if __name__ == "__main__":

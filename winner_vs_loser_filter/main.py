@@ -3,7 +3,6 @@ import pika
 import time
 import json
 from datetime import datetime, timedelta
-from custom_queue import Queue
 import os
 
 import logging
@@ -41,8 +40,6 @@ def main():
     channel.queue_declare(queue=config['input_queue'])
     channel.queue_declare(queue=config['output_queue'])
     '''
-
-    queue = Queue()
 
     sentinels = 0
 

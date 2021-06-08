@@ -2,12 +2,17 @@ import pika
 import logging
 import json
 
-class Queue:
-    def __init__(self, host, input_queue=None, iterate=True, callback=None, output_queue=None, size_msg=100000):
-        self.connection = pika.BlockingConnection(
+def connect(host):
+    connection = pika.BlockingConnection(
             pika.ConnectionParameters(host=host))
 
-        self.channel = self.connection.channel()
+    channel = connection.channel()
+    return (connection, channel)
+
+class Queue:
+    def __init__(self, connection, channel, input_queue=None, iterate=True, callback=None, output_queue=None, size_msg=100000):
+        self.connection = connection
+        self.channel = channel
 
         if input_queue:
             self.input_queue = input_queue
