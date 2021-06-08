@@ -20,6 +20,7 @@ def parse_config_params():
     try:
         config_params["input_queue"] = os.environ["INPUT_QUEUE"]
         config_params["output_queue"] = os.environ["OUTPUT_QUEUE"]
+        config_params['sentinels'] = int(os.environ["SENTINELS"])
     except KeyError as e:
         raise KeyError(
             "Key was not found. Error: {} .Aborting server".format(e))
@@ -41,11 +42,14 @@ def main():
     sentinels = 0
 
     def callback(ch, method, properties, body):
-        #print("[x] Received %r" % body)
+        print("[x] Received %r" % body)
         rows_by_civ = json.loads(body.decode('utf-8'))
 
         if 'final' in rows_by_civ:
-            return
+            nonlocal sentinels
+            sentinels += 1
+            if sentinels == config['sentinels']:
+                channel.basic_publish(exchange='', routing_key=config['output_queue'], body=body)
                 
         else:
             civ = rows_by_civ['civ']

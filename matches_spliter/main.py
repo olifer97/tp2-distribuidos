@@ -2,6 +2,7 @@
 import pika
 import time
 import json
+from custom_queue import Queue
 
 import logging
 
@@ -19,27 +20,16 @@ def parse_config_params():
     return config_params
 
 def main():
-    connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='rabbitmq'))
 
-    channel = connection.channel()
-    channel.queue_declare(queue='matches')
-    channel.queue_declare(queue='clone_1_matches')
-    channel.queue_declare(queue='clone_2_matches')
+    queue_1 = Queue('rabbitmq', output_queue='clone_1_matches')
+    queue_2 = Queue('rabbitmq', output_queue='clone_2_matches')
+        
+    def callback(body):
+        queue_1.send_bytes(body)
+        queue_2.send_bytes(body)
 
-
-    def callback(ch, method, properties, body):
-        #print("[x] Received %r" % body)
-        channel.basic_publish(exchange='', routing_key='clone_1_matches', body=body)
-        channel.basic_publish(exchange='', routing_key='clone_2_matches', body=body)
-
-    channel.basic_consume(
-        queue='matches', on_message_callback=callback, auto_ack=True)
-
-    print(' [*] Waiting for messages. To exit press CTRL+C')
-    channel.start_consuming()
-
-
+    queue = Queue('rabbitmq', input_queue='matches', callback=callback, iterate=False)
+    
 
 if __name__ == "__main__":
     logging.basicConfig(

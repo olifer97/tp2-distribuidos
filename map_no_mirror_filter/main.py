@@ -41,7 +41,7 @@ def main():
     channel.queue_declare(queue=config['output_queue'])
 
     def callback(ch, method, properties, body):
-        #print("[x] Received %r" % body)
+        print("[x] Received %r" % body)
         match = json.loads(body.decode('utf-8'))
 
         if 'final' in match:

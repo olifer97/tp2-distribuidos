@@ -221,6 +221,7 @@ services:
       - PYTHONUNBUFFERED=1
       - INPUT_QUEUE=groupby_civ_3
       - OUTPUT_QUEUE=3
+      - SENTINELS=%d
 
   top_civilizations:
     container_name: top_civilizations
@@ -320,7 +321,7 @@ def main():
     for i in range(reducers):
         reducers4_section += GROUPBY_CIV_REDUCER_FORMAT % (4,i,4, i, "civ_type4_reducer_{}".format(i), "groupby_civ_4")
 
-    base = BASE_COMPOSE % (joiners, joiners, reducers, reducers, joiners, reducers, joiners,reducers, reducers)
+    base = BASE_COMPOSE % (joiners, joiners, reducers, reducers, joiners, reducers, joiners,reducers, reducers, reducers)
     compose = base.replace("<GROUPBY_MATCH_REDUCERS>", reducers_section) \
                   .replace("<JOINERS_3>", joiners3_section) \
                   .replace("<JOINERS_4>", joiners4_section) \

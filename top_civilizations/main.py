@@ -34,13 +34,13 @@ def parse_config_params():
 def top_n(top_civ, n, callback):
     print(top_civ)
     top = heapq.nlargest(n, top_civ)
-    print(top)
     for amount, civ in top:
         civ = {
             "civ": civ,
             "amount": amount,
         }
         callback(civ)
+    callback({'final': True})
 
 def main():
     config = parse_config_params()
