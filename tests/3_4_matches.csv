@@ -1,0 +1,9 @@
+token,winning_team,mirror,ladder,patch,average_rating,map,map_size,num_players,server,duration
+ARENA_1V1_1,2,False,RM_1v1,40874,2100,arena,tiny,2,koreacentral,2:32:00
+ARENA_1V1_2,1,False,RM_1v1,37906,,arena,tiny,2,southeastasia,0:41:45
+NO_ARENA_1V1_3,1,True,RM_1v1,37906,,arena,tiny,2,southeastasia,0:41:45
+NO_1,2,False,RM_1v1,41855,2900,eastus,tiny,2,eastus,0:16:59
+NO_2,1,False,RM_1v1,36906,2001,eastus,tiny,2,eastus,2:00:01
+ISLANDS_TEAM_1,1,False,RM_TEAM,40220,2002,islands,tiny,2,koreacentral,"1 day, 18:10:12"
+ISLANDS_TEAM_2,1,False,RM_TEAM,37906,1057,islands,tiny,2,ukwest,"15 days, 18:10:12"
+NO_ISLANDS_TEAM_3,1,False,RM_TEAM,37906,1057,arena,tiny,2,ukwest,"15 days, 18:10:12"
