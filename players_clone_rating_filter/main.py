@@ -3,6 +3,8 @@ import pika
 import time
 import json
 
+from custom_queue import Queue, connect
+
 import logging
 
 def parse_config_params():
@@ -19,35 +21,27 @@ def parse_config_params():
     return config_params
 
 def main():
-    connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='rabbitmq'))
+    connection, channel = connect('rabbitmq')
 
-    channel = connection.channel()
-    channel.queue_declare(queue='match_players')
-    channel.queue_declare(queue='players_greater_2000')
-    channel.queue_declare(queue='players_clone_1')
-    channel.queue_declare(queue='players_clone_2')
-
-
-    def callback(ch, method, properties, body):
-        #print("[x] Received %r" % body)
-        match = json.loads(body.decode('utf-8'))
-        channel.basic_publish(exchange='', routing_key='players_clone_1', body=body)
-        channel.basic_publish(exchange='', routing_key='players_clone_2', body=body)
-        if 'final' in match:
-            channel.basic_publish(exchange='', routing_key='players_greater_2000', body=body)
-        else:
-            string_rating = match['rating'] if 'rating' in match else ''
-            rating = 0 if string_rating == '' else float(string_rating)
-            if rating > 2000 or 'final' in match:
-                channel.basic_publish(exchange='', routing_key='players_greater_2000', body=body)
+    queue_1 = Queue(connection, channel, output_queue='players_clone_1')
+    queue_2 = Queue(connection, channel, output_queue='players_clone_2')
+    queue_greater_2000 = Queue(connection, channel, output_queue='players_greater_2000')
         
+    def callback(body):
+        if 'final' in body:
+            queue_1.send_with_last()
+            queue_2.send_with_last()
+            queue_greater_2000.send_with_last()
+        else:
+            queue_2.send(body)
+            match_reduce = { your_key: body[your_key] for your_key in ['match','rating','token', 'winner'] }
+            queue_1.send(match_reduce)
+            string_rating = body['rating'] if 'rating' in body else ''
+            rating = 0 if not string_rating or not string_rating.isdecimal() else float(string_rating)
+            if rating > 2000:
+                queue_greater_2000.send(body)
 
-    channel.basic_consume(
-        queue='match_players', on_message_callback=callback, auto_ack=True)
-
-    print(' [*] Waiting for messages. To exit press CTRL+C')
-    channel.start_consuming()
+    input_queue = Queue(connection, channel, input_queue='match_players', callback=callback)
 
 
 if __name__ == "__main__":

@@ -72,7 +72,6 @@ def main():
                 matches[key] = {"left_by": [], "right_by": []}
                 
             matches[key][side].append(data)
-            #print(matches[key])
             
         
 

@@ -4,6 +4,8 @@ import time
 import json
 import os
 
+from custom_queue import Queue, connect
+
 import logging
 
 def parse_config_params():
@@ -36,26 +38,26 @@ def groupby(data, groupby_key, callback):
             "rows": rows,
         }
         callback(grouped_rows)
-    callback({"final": True})
+    #callback({"final": True})
 
 def main():
     config = parse_config_params()
-    connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='rabbitmq'))
 
-    channel = connection.channel()
-    channel.queue_declare(queue=config['input_queue'])
-    channel.queue_declare(queue=config['output_queue'])
+    connection, channel = connect('rabbitmq')
+
+    output_queue = Queue(connection, channel, output_queue=config['output_queue'], size_msg=50000)
 
     data = {}
 
-    def callback(ch, method, properties, body):
+    def callback(msg):
         #print("[x] Received %r" % body)
-        msg = json.loads(body.decode('utf-8'))
+        #msg = json.loads(body.decode('utf-8'))
         if 'final' in msg:
             def send(data):
-                channel.basic_publish(exchange='', routing_key=config['output_queue'], body=json.dumps(data))
+                output_queue.send(data)
+                #channel.basic_publish(exchange='', routing_key=config['output_queue'], body=json.dumps(data))
             groupby(data, config['group_by'], send)
+            output_queue.send_with_last()
                 
         else:
             key = msg[config['group_by']]
@@ -65,12 +67,7 @@ def main():
                 data[key].append(msg)
             
         
-
-    channel.basic_consume(
-        queue=config['input_queue'], on_message_callback=callback, auto_ack=True)
-
-    print(' [*] Waiting for messages. To exit press CTRL+C')
-    channel.start_consuming()
+    input_queue = Queue(connection, channel, input_queue=config['input_queue'], callback=callback)
 
 
 

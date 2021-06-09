@@ -5,6 +5,8 @@ import json
 from datetime import datetime, timedelta
 import os
 
+from custom_queue import Queue, connect
+
 import logging
 
 def parse_config_params():
@@ -31,44 +33,31 @@ def parse_config_params():
     return config_params
 
 def main():
-    '''
     config = parse_config_params()
-    connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='rabbitmq'))
-
-    channel = connection.channel()
-    channel.queue_declare(queue=config['input_queue'])
-    channel.queue_declare(queue=config['output_queue'])
-    '''
+    connection, channel = connect('rabbitmq')
+    output_queue = Queue(connection, channel, output_queue=config['output_queue'])
 
     sentinels = 0
 
-    def callback(ch, method, properties, body):
-        print("[x] Received %r" % body)
-        players = json.loads(body.decode('utf-8'))
-
+    def callback(players):
+        #print("lo que me llega {}".format(players))
         if 'final' in players:
             nonlocal sentinels
             sentinels += 1
             if sentinels == config['sentinels']:
-                channel.basic_publish(exchange='', routing_key=config['output_queue'], body=body)
-            return
+                output_queue.send_last()
+        else:
+            winner_string_rating = players['rtg_winner']
+            winner_rating = 0 if winner_string_rating == '' else float(winner_string_rating)
 
-        winner_string_rating = players['rtg_winner']
-        winner_rating = 0 if winner_string_rating == '' else float(winner_string_rating)
+            loser_string_rating = players['rtg_loser']
+            loser_rating = 0 if loser_string_rating == '' else float(loser_string_rating)
 
-        loser_string_rating = players['rtg_loser']
-        loser_rating = 0 if loser_string_rating == '' else float(loser_string_rating)
+            if winner_rating > 1000 and (loser_rating-winner_rating)*100/winner_rating > 30:
+                #print("con lo que me quedo {}".format(players))
+                output_queue.send_bytes(json.dumps(players))
 
-        if winner_rating > 1000 and (loser_rating-winner_rating)*100/winner_rating > 30:
-            channel.basic_publish(exchange='', routing_key=config['output_queue'], body=body)
-                    
-
-    channel.basic_consume(
-        queue=config['input_queue'], on_message_callback=callback, auto_ack=True)
-
-    print(' [*] Waiting for messages. To exit press CTRL+C')
-    channel.start_consuming()
+    input_queue = Queue(connection, channel, input_queue=config['input_queue'], callback=callback)                
 
 
 

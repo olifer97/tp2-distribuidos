@@ -4,6 +4,8 @@ import time
 import json
 import os
 
+from custom_queue import Queue, connect
+
 import logging
 
 def parse_config_params():
@@ -33,38 +35,31 @@ def parse_config_params():
 
 def main():
     config = parse_config_params()
+    connection, channel = connect('rabbitmq')
 
-    connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='rabbitmq'))
-
-    channel = connection.channel()
-    channel.queue_declare(queue=config['input_queue'])
+    output_queues = []
+    
     for i in range(config['reducers']):
-        channel.queue_declare(queue='{}{}'.format(config['output_queues_suffix'],i))
+        output_queues.append(Queue(connection, channel, output_queue='{}{}'.format(config['output_queues_suffix'],i)))
 
     sentinels = 0
 
-    def callback(ch, method, properties, body):
-        print("[x] Received %r" % body)
-        msg = json.loads(body.decode('utf-8'))
+    def callback(msg):
+        #print("[x] Received %r" % body)
+        #msg = json.loads(body.decode('utf-8'))
         if 'final' in msg:
             nonlocal sentinels
             sentinels += 1
-            print(sentinels)
-            print(config['sentinels'])
             if sentinels == config['sentinels']:
-                for i in range(config['reducers']):
-                    channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],i), body=body)
+                for output_queue in output_queues:
+                    output_queue.send_with_last()
         else:
             key = msg[config['group_by']]
-            queue = hash(key) % config['reducers']
-            channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],queue), body=body)
+            index_queue = hash(key) % config['reducers']
+            #print("match: {} reducer {}".format(key, index_queue))
+            output_queues[index_queue].send(msg)
 
-    channel.basic_consume(
-        queue=config['input_queue'], on_message_callback=callback, auto_ack=True)
-
-    print(' [*] Waiting for messages. To exit press CTRL+C')
-    channel.start_consuming()
+    input_queue = Queue(connection, channel, input_queue=config['input_queue'], callback=callback)
 
 
 

@@ -14,9 +14,9 @@ services:
         timeout: 5s
         retries: 10
 
-  matches_spliter:
-    container_name: matches_spliter
-    image: matches_spliter:latest
+  players_clone_rating_filter:
+    container_name: players_clone_rating_filter
+    image: players_clone_rating_filter:latest
     entrypoint: python3 /main.py
     restart: on-failure
     depends_on:
@@ -27,9 +27,9 @@ services:
       - PYTHONUNBUFFERED=1
 
 
-  servers_avg_rating_duration:
-    container_name: servers_avg_rating_duration
-    image: servers_avg_rating_duration:latest
+  groupby_match_controller:
+    container_name: groupby_match_controller
+    image: groupby_controller:latest
     entrypoint: python3 /main.py
     restart: on-failure
     depends_on:
@@ -38,3 +38,55 @@ services:
       - rabbitmq
     environment:
       - PYTHONUNBUFFERED=1
+      - K_REDUCERS=2
+      - INPUT_QUEUE=players_clone_1
+      - OUTPUT_QUEUES_SUFFIX=players_reducer_
+      - GROUP_BY=match
+      - SENTINELS=1
+
+  
+
+  groupby_match_reducer_0:
+    container_name: groupby_match_reducer_0
+    image: groupby_match_reducer:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=players_reducer_0
+      - OUTPUT_QUEUE=1v1_players
+
+
+
+  groupby_match_reducer_1:
+    container_name: groupby_match_reducer_1
+    image: groupby_match_reducer:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=players_reducer_1
+      - OUTPUT_QUEUE=1v1_players
+   
+  winner_vs_loser_filter:
+    container_name: winner_vs_loser_filter
+    image: winner_vs_loser_filter:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=1v1_players
+      - OUTPUT_QUEUE=2
+      - SENTINELS=2

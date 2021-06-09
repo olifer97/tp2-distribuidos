@@ -4,6 +4,8 @@ import time
 import json
 import os
 
+from custom_queue import Queue, connect
+
 import logging
 
 def parse_config_params():
@@ -30,35 +32,38 @@ def parse_config_params():
 
 def groupby_and_filter(matches, callback):
     for match_token, players in matches.items():
-        if len(players) != 2:
-            continue
-        winner, looser = (players[0], players[1]) if players[0]['winner'] == 'True' else (players[1], players[0])
-        match = {
-            "match": match_token,
-            "rtg_winner": winner['rating'],
-            "rtg_loser": looser['rating']
-        }
-        callback(match)
-    callback({"final": True})
+        if len(players) != 2: continue
+        
+        player_0_is_winner, player_1_is_winner = (players[0]['winner'] == 'True',players[1]['winner'] == 'True')
+        if [player_0_is_winner, player_1_is_winner].count(True) == 1:
+            winner, loser = (players[0], players[1]) if player_0_is_winner else (players[1], players[0])
+            match = {
+                "match": match_token,
+                "rtg_winner": winner['rating'],
+                "rtg_loser": loser['rating']
+            }
+            callback(match)
+                
+            
 
 def main():
     config = parse_config_params()
-    connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='rabbitmq'))
+    connection, channel = connect('rabbitmq')
 
-    channel = connection.channel()
-    channel.queue_declare(queue=config['input_queue'])
-    channel.queue_declare(queue=config['output_queue'])
+    output_queue = Queue(connection, channel, output_queue=config['output_queue'], size_msg=50000)
 
     matches = {}
 
-    def callback(ch, method, properties, body):
-        print("[x] Received %r" % body)
-        msg = json.loads(body.decode('utf-8'))
+    def callback(msg):
+        #print("[x] Received %r" % body)
+        #msg = json.loads(body.decode('utf-8'))
+        #print("recibo {}".format(msg))
         if 'final' in msg:
+            #print("recibi final!")
             def send(data):
-                channel.basic_publish(exchange='', routing_key=config['output_queue'], body=json.dumps(data))
+                output_queue.send(data)
             groupby_and_filter(matches, send)
+            output_queue.send_with_last()
                 
         else:
             match_token = msg['match']
@@ -67,13 +72,7 @@ def main():
             else:
                 matches[match_token].append(msg)
             
-        
-
-    channel.basic_consume(
-        queue=config['input_queue'], on_message_callback=callback, auto_ack=True)
-
-    print(' [*] Waiting for messages. To exit press CTRL+C')
-    channel.start_consuming()
+    input_queue = Queue(connection, channel, input_queue=config['input_queue'], callback=callback)
 
 
 
