@@ -25,6 +25,11 @@ services:
       - rabbitmq
     environment:
       - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=matches
+      - QUEUE_1=clone_1_matches
+      - QUEUE_2=clone_2_matches
+      - COLUMNS_1=token,average_rating,duration,server
+      - COLUMNS_2=token,ladder,map,mirror
 
   ladder_filter:
     container_name: ladder_filter
@@ -38,8 +43,9 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
 
-  servers_avg_rating_duration:
-    container_name: servers_avg_rating_duration
+  
+  servers_avg_rating_duration_0:
+    container_name: servers_avg_rating_duration_0
     image: servers_avg_rating_duration:latest
     entrypoint: python3 /main.py
     restart: on-failure
@@ -49,6 +55,7 @@ services:
       - rabbitmq
     environment:
       - PYTHONUNBUFFERED=1
+
 
   players_clone_rating_filter:
     container_name: players_clone_rating_filter
@@ -61,6 +68,14 @@ services:
       - rabbitmq
     environment:
       - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=match_players
+      - QUEUE_1=players_clone_1
+      - QUEUE_2=players_clone_2
+      - QUEUE_FILTERED=players_greater_2000
+      - COLUMNS_1=match,rating,token,winner
+      - COLUMNS_2=match,civ,token,winner
+      - COLUMNS_FILTERED=match,token,civ
+      - RATING_FIELD=rating
 
   join_controller_3:
     container_name: join_controller_3

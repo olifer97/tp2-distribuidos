@@ -11,8 +11,9 @@ import logging
 
 def main():
     lines = 0 if len(sys.argv) < 2 else int(sys.argv[1])
-    matches_loader = threading.Thread(target=load, args=('matches.csv', 'matches', lines, 100000 ))
-    match_players_loader = threading.Thread(target=load, args=('match_players.csv', 'match_players', lines, 10000))
+    batch_size = 100000 if len(sys.argv) < 3 else int(sys.argv[2])
+    matches_loader = threading.Thread(target=load, args=('matches.csv', 'matches', lines, batch_size ))
+    match_players_loader = threading.Thread(target=load, args=('match_players.csv', 'match_players', lines, batch_size))
     matches_loader.start()
     match_players_loader.start()
 

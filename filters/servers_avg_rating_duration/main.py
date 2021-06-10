@@ -43,16 +43,17 @@ def main():
             output_queue.send_last()
             print("Termine")
             return
-        server = match['server']
-        string_avg_rating = match['average_rating']
-        avg_rating = 0 if string_avg_rating == '' else float(string_avg_rating)
-        duration = to_timedelta(match['duration'])
+        else:
+            server = match['server']
+            string_avg_rating = match['average_rating']
+            avg_rating = 0 if string_avg_rating == '' else float(string_avg_rating)
+            duration = to_timedelta(match['duration'])
 
-        if server == 'koreacentral' or server == 'southeastasia' or server == 'eastus':
-            if avg_rating >= 2000:
-                if duration > to_timedelta("02:00:00"):
-                    logging.info("Found match")
-                    output_queue.send_bytes(json.dumps(match))
+            if server == 'koreacentral' or server == 'southeastasia' or server == 'eastus':
+                if avg_rating >= 2000:
+                    if duration > to_timedelta("02:00:00"):
+                        logging.info("Found match")
+                        output_queue.send_bytes(json.dumps(match))
 
     input_queue = Queue(connection, channel, input_queue='clone_1_matches', callback=callback)
 

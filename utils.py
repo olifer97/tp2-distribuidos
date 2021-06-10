@@ -5,14 +5,7 @@ def proccessChunk(header, chunk, callback):
     for row in chunk:
         dict_row = {}
         for i in range(len(header)):
-            try:
-                dict_row[header[i]] = row[i]
-            except:
-                print(i)
-                print(header)
-                print(row)
-                print(header[i])
-                #print(row[i])
+            dict_row[header[i]] = row[i]
         callback(dict_row)
 
 def load(csv_name, queue_name, total_rows = 0, size_msg = 1 ):

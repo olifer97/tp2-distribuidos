@@ -2,41 +2,47 @@
 import pika
 import time
 import json
+import os
 from custom_queue import Queue, connect
 
 import logging
 
 def parse_config_params():
-    """ Parse env variables to find program config params
-
-    Function that search and parse program configuration parameters in the
-    program environment variables. If at least one of the config parameters
-    is not found a KeyError exception is thrown. If a parameter could not
-    be parsed, a ValueError is thrown. If parsing succeeded, the function
-    returns a map with the env variables
-    """
     config_params = {}
+    try:
+        config_params["input_queue"] = os.environ["INPUT_QUEUE"]
+        config_params["queue_1"] = os.environ["QUEUE_1"]
+        config_params["queue_2"] = os.environ["QUEUE_2"]
+        config_params["columns_1"] = os.environ["COLUMNS_1"].split(",")
+        config_params["columns_2"] = os.environ["COLUMNS_2"].split(",")
+    except KeyError as e:
+        raise KeyError(
+            "Key was not found. Error: {} .Aborting server".format(e))
+    except ValueError as e:
+        raise ValueError(
+            "Key could not be parsed. Error: {}. Aborting server".format(e))
 
     return config_params
 
 def main():
+    config = parse_config_params()
 
     connection, channel = connect('rabbitmq')
 
-    queue_1 = Queue(connection, channel, output_queue='clone_1_matches')
-    queue_2 = Queue(connection, channel, output_queue='clone_2_matches')
+    queue_1 = Queue(connection, channel, output_queue=config['queue_1'])
+    queue_2 = Queue(connection, channel, output_queue=config['queue_2'])
         
     def callback(body):
         if 'final' in body:
             queue_1.send_with_last()
             queue_2.send_with_last()
         else:
-            match1_reduce = { your_key: body[your_key] for your_key in ['token','average_rating','duration', 'server'] }
+            match1_reduce = { your_key: body[your_key] for your_key in config["columns_1"] }
             queue_1.send(match1_reduce)
-            match2_reduce = { your_key: body[your_key] for your_key in ['token', 'ladder', 'map', 'mirror'] }
+            match2_reduce = { your_key: body[your_key] for your_key in config["columns_2"] }
             queue_2.send(match2_reduce)
 
-    queue = Queue(connection, channel, input_queue='matches', callback=callback)
+    queue = Queue(connection, channel, input_queue=config['input_queue'], callback=callback)
     
 
 if __name__ == "__main__":

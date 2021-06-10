@@ -27,6 +27,11 @@ services:
       - rabbitmq
     environment:
       - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=matches
+      - QUEUE_1=clone_1_matches
+      - QUEUE_2=clone_2_matches
+      - COLUMNS_1=token,average_rating,duration,server
+      - COLUMNS_2=token,ladder,map,mirror
 
   ladder_filter:
     container_name: ladder_filter
@@ -40,17 +45,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
 
-  servers_avg_rating_duration:
-    container_name: servers_avg_rating_duration
-    image: servers_avg_rating_duration:latest
-    entrypoint: python3 /main.py
-    restart: on-failure
-    depends_on:
-      - rabbitmq
-    links: 
-      - rabbitmq
-    environment:
-      - PYTHONUNBUFFERED=1
+  <FILTERS_1>
 
   players_clone_rating_filter:
     container_name: players_clone_rating_filter
@@ -63,6 +58,14 @@ services:
       - rabbitmq
     environment:
       - PYTHONUNBUFFERED=1
+      - INPUT_QUEUE=match_players
+      - QUEUE_1=players_clone_1
+      - QUEUE_2=players_clone_2
+      - QUEUE_FILTERED=players_greater_2000
+      - COLUMNS_1=match,rating,token,winner
+      - COLUMNS_2=match,civ,token,winner
+      - COLUMNS_FILTERED=match,token,civ
+      - RATING_FIELD=rating
 
   join_controller_3:
     container_name: join_controller_3
@@ -240,6 +243,20 @@ services:
       - SENTINELS=%d
 """
 
+FILTER_1_FORMAT = """
+  servers_avg_rating_duration_%d:
+    container_name: servers_avg_rating_duration_%d
+    image: servers_avg_rating_duration:latest
+    entrypoint: python3 /main.py
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+      - rabbitmq
+    environment:
+      - PYTHONUNBUFFERED=1
+"""
+
 GROUPBY_MATCH_REDUCER_FORMAT = """
 
   groupby_match_reducer_%d:
@@ -300,6 +317,11 @@ JOINERS_FORMAT = """
 def main():
     reducers = int(sys.argv[1])
     joiners = int(sys.argv[2])
+    filters = int(sys.argv[3])
+
+    filter1_section = ""
+    for i in range(filters):
+      filter1_section += FILTER_1_FORMAT % (i, i)
 
     reducers_section = ""
     for i in range(reducers):
@@ -327,6 +349,7 @@ def main():
                   .replace("<JOINERS_4>", joiners4_section) \
                   .replace("<GROUPBY_CIV_REDUCERS_3>", reducers3_section) \
                   .replace("<GROUPBY_CIV_REDUCERS_4>", reducers4_section) \
+                  .replace("<FILTERS_1>", filter1_section) \
 
     with open("docker-compose.yml", "w") as compose_file:
         compose_file.write(compose)
