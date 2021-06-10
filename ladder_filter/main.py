@@ -35,8 +35,10 @@ def main():
             v1_queue.send_with_last()
         else:
             if match['ladder'] == 'RM_TEAM':
+                del match['ladder']
                 vteam_queue.send(match)
             elif match['ladder'] == 'RM_1v1':
+                del match['ladder']
                 v1_queue.send(match)
     input_queue = Queue(connection, channel, input_queue='clone_2_matches', callback=callback)
 

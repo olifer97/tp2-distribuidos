@@ -42,12 +42,12 @@ def main():
     def callback(match):
         if 'final' in match:
             output_queue.send_with_last()
-            #channel.basic_publish(exchange='', routing_key=config['output_queue'], body=body)
         else:
             if match['map'] == config['map']:
                 if not config['no_mirror'] or (config['no_mirror'] and match['mirror'] == 'False'):
+                    del match['map']
+                    del match['mirror']
                     output_queue.send(match)
-                    #channel.basic_publish(exchange='', routing_key=config['output_queue'], body=body)
 
     input_queue = Queue(connection, channel, input_queue=config['input_queue'], callback=callback)
 

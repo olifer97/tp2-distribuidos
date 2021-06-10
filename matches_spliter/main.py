@@ -27,10 +27,16 @@ def main():
     queue_2 = Queue(connection, channel, output_queue='clone_2_matches')
         
     def callback(body):
-        queue_1.send_bytes(body)
-        queue_2.send_bytes(body)
+        if 'final' in body:
+            queue_1.send_with_last()
+            queue_2.send_with_last()
+        else:
+            match1_reduce = { your_key: body[your_key] for your_key in ['token','average_rating','duration', 'server'] }
+            queue_1.send(match1_reduce)
+            match2_reduce = { your_key: body[your_key] for your_key in ['token', 'ladder', 'map', 'mirror'] }
+            queue_2.send(match2_reduce)
 
-    queue = Queue(connection, channel, input_queue='matches', callback=callback, iterate=False)
+    queue = Queue(connection, channel, input_queue='matches', callback=callback)
     
 
 if __name__ == "__main__":

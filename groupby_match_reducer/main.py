@@ -53,6 +53,7 @@ def main():
     output_queue = Queue(connection, channel, output_queue=config['output_queue'], size_msg=50000)
 
     matches = {}
+    team_matches = set([])
 
     def callback(msg):
         if 'final' in msg:
@@ -63,8 +64,13 @@ def main():
                 
         else:
             match_token = msg['match']
-            if match_token not in matches:
+            if match_token in team_matches:
+                return
+            elif match_token not in matches:
                 matches[match_token] = [msg]
+            elif len(matches[match_token]) >= 2:
+                del matches[match_token]
+                team_matches.add(match_token)
             else:
                 matches[match_token].append(msg)
             

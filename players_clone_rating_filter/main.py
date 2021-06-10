@@ -33,12 +33,14 @@ def main():
             queue_2.send_with_last()
             queue_greater_2000.send_with_last()
         else:
-            queue_2.send(body)
-            match_reduce = { your_key: body[your_key] for your_key in ['match','rating','token', 'winner'] }
-            queue_1.send(match_reduce)
+            player2_reduce = { your_key: body[your_key] for your_key in ['match','civ','token', 'winner'] }
+            queue_2.send(player2_reduce)
+            player_reduce = { your_key: body[your_key] for your_key in ['match','rating','token', 'winner'] }
+            queue_1.send(player_reduce)
             string_rating = body['rating'] if 'rating' in body else ''
             rating = 0 if not string_rating or not string_rating.isdecimal() else float(string_rating)
             if rating > 2000:
+                pro_players_reduce = { your_key: body[your_key] for your_key in ['match','token','civ'] }
                 queue_greater_2000.send(body)
 
     input_queue = Queue(connection, channel, input_queue='match_players', callback=callback)

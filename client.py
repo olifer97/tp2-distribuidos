@@ -9,8 +9,8 @@ from utils import load
 import logging
 
 def main():
-    matches_loader = threading.Thread(target=load, args=('matches.csv', 'matches', 100000, 100000 ))
-    match_players_loader = threading.Thread(target=load, args=('match_players.csv', 'match_players', 100000, 10000))
+    matches_loader = threading.Thread(target=load, args=('matches.csv', 'matches', 0, 100000 ))
+    match_players_loader = threading.Thread(target=load, args=('match_players.csv', 'match_players', 0, 10000))
     matches_loader.start()
     match_players_loader.start()
 
