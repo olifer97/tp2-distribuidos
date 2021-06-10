@@ -49,6 +49,7 @@ def main():
             nonlocal sentinels
             sentinels += 1
             if sentinels == config['sentinels']:
+                sentinels = 0
                 for output_queue in output_queues:
                     output_queue.send_with_last()
         else:

@@ -53,10 +53,12 @@ def main():
 
     def callback(row):
         if 'final' in row:
+            nonlocal matches
             def send(data):
                 output_queue.send(data)
             join(matches, send)
             output_queue.send_with_last()
+            matches = {}
                 
         else:
             side = "left_by" if row['side'] == "left" else "right_by"

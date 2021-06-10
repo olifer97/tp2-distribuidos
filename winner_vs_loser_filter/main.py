@@ -45,6 +45,8 @@ def main():
             sentinels += 1
             if sentinels == config['sentinels']:
                 output_queue.send_last()
+                sentinels = 0
+                print("Termine")
         else:
             winner_string_rating = players['rtg_winner']
             winner_rating = 0 if winner_string_rating == '' else float(winner_string_rating)

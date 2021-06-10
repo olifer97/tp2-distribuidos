@@ -57,10 +57,13 @@ def main():
 
     def callback(msg):
         if 'final' in msg:
+            nonlocal matches, team_matches
             def send(data):
                 output_queue.send(data)
             groupby_and_filter(matches, send)
             output_queue.send_with_last()
+            matches = {}
+            team_matches = set([])
                 
         else:
             match_token = msg['match']

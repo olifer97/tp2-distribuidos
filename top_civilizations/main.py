@@ -53,17 +53,20 @@ def main():
 
     def callback(msg):
         if 'final' in msg:
-            nonlocal sentinels
+            nonlocal sentinels, top_civ
             sentinels += 1
             if sentinels == config['sentinels']:
                 def send(data):
                     output_queue.send_bytes(json.dumps(data))
                 top_n(top_civ, config['top_n'], send)
                 output_queue.send_last()
+                print("Termine")
+                top_civ = []
+                sentinels = 0
                 
         else:
             civ = msg['civ']
-            amount = len(msg['rows'])
+            amount = msg['count']
             heapq.heappush(top_civ, (amount, civ)) 
             
     input_queue = Queue(connection, channel, input_queue=config['input_queue'], callback=callback)

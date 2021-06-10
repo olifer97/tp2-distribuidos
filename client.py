@@ -5,12 +5,14 @@ import json
 import csv
 import threading
 from utils import load
+import sys
 
 import logging
 
 def main():
-    matches_loader = threading.Thread(target=load, args=('matches.csv', 'matches', 0, 100000 ))
-    match_players_loader = threading.Thread(target=load, args=('match_players.csv', 'match_players', 0, 10000))
+    lines = 0 if len(sys.argv) < 2 else int(sys.argv[1])
+    matches_loader = threading.Thread(target=load, args=('matches.csv', 'matches', lines, 100000 ))
+    match_players_loader = threading.Thread(target=load, args=('match_players.csv', 'match_players', lines, 10000))
     matches_loader.start()
     match_players_loader.start()
 

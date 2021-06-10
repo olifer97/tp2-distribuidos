@@ -41,6 +41,7 @@ def main():
     def callback(match):
         if 'final' in match:
             output_queue.send_last()
+            print("Termine")
             return
         server = match['server']
         string_avg_rating = match['average_rating']

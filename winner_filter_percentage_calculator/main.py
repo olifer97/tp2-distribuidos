@@ -45,16 +45,16 @@ def main():
             sentinels += 1
             if sentinels == config['sentinels']:
                 output_queue.send_last()
+                sentinels = 0
+                print("Termine")
                 
         else:
             civ = rows_by_civ['civ']
-            rows = rows_by_civ['rows']
             
-            count_victories = 0
-            for row in rows:
-                if row['winner'] == 'True':
-                    count_victories +=1
-            win_rate = (count_victories * 100) / len(rows)
+            count_rows = rows_by_civ['count']
+            count_victories = rows_by_civ['victories']
+
+            win_rate = (count_victories * 100) / count_rows
             result = {"civ": civ, "victory_percentaje": win_rate}
             output_queue.send_bytes(json.dumps(result))
 

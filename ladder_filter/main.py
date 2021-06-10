@@ -27,8 +27,6 @@ def main():
     vteam_queue = Queue(connection, channel, output_queue='team_matches')
     v1_queue = Queue(connection, channel, output_queue='1v1_matches')
 
-    matches = {}
-
     def callback(match):
         if 'final' in match:
             vteam_queue.send_with_last()

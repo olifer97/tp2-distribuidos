@@ -32,10 +32,11 @@ def parse_config_params():
     return config_params
 
 def groupby(data, groupby_key, callback):
-    for key, rows in data.items():
+    for key, aggregation in data.items():
         grouped_rows = {
             groupby_key: key,
-            "rows": rows,
+            'count': aggregation['count'],
+            'victories': aggregation['victories']
         }
         callback(grouped_rows)
 
@@ -50,18 +51,20 @@ def main():
 
     def callback(msg):
         if 'final' in msg:
-            def send(data):
-                output_queue.send(data)
+            nonlocal data
+            def send(output):
+                output_queue.send(output)
             groupby(data, config['group_by'], send)
             output_queue.send_with_last()
+            data = {}
                 
         else:
             key = msg[config['group_by']]
             if key not in data:
-                data[key] = [msg]
+                data[key] = {'count': 1, 'victories': 1 if msg['winner'] == 'True' else 0}
             else:
-                data[key].append(msg)
-            
+                data[key]['count'] += 1
+                data[key]['victories'] += 1 if msg['winner'] == 'True' else 0
         
     input_queue = Queue(connection, channel, input_queue=config['input_queue'], callback=callback)
 
