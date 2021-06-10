@@ -10,7 +10,7 @@ def connect(host):
     return (connection, channel)
 
 class Queue:
-    def __init__(self, connection, channel, input_queue=None, iterate=True, callback=None, output_queue=None, size_msg=100000):
+    def __init__(self, connection, channel, input_queue=None, iterate=True, callback=None, output_queue=None, size_msg=100000, start_consuming=True):
         self.connection = connection
         self.channel = channel
 
@@ -20,7 +20,7 @@ class Queue:
             self.iterate = iterate
             self.channel.queue_declare(queue=self.input_queue)
             self.channel.basic_consume(queue=self.input_queue, on_message_callback=self.__callback, auto_ack=True)
-            self.channel.start_consuming()
+            if start_consuming: self.channel.start_consuming()
         if output_queue:
             self.output_queue = output_queue
             self.size_msg = size_msg

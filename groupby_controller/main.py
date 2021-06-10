@@ -45,8 +45,6 @@ def main():
     sentinels = 0
 
     def callback(msg):
-        #print("[x] Received %r" % body)
-        #msg = json.loads(body.decode('utf-8'))
         if 'final' in msg:
             nonlocal sentinels
             sentinels += 1
@@ -56,7 +54,6 @@ def main():
         else:
             key = msg[config['group_by']]
             index_queue = hash(key) % config['reducers']
-            #print("match: {} reducer {}".format(key, index_queue))
             output_queues[index_queue].send(msg)
 
     input_queue = Queue(connection, channel, input_queue=config['input_queue'], callback=callback)

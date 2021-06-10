@@ -5,6 +5,8 @@ import json
 
 import logging
 
+from custom_queue import Queue, connect
+
 def parse_config_params():
     """ Parse env variables to find program config params
 
@@ -19,32 +21,24 @@ def parse_config_params():
     return config_params
 
 def main():
-    connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='rabbitmq'))
+    config = parse_config_params()
+    connection, channel = connect('rabbitmq')
 
-    channel = connection.channel()
-    channel.queue_declare(queue='clone_2_matches')
-    channel.queue_declare(queue='team_matches')
-    channel.queue_declare(queue='1v1_matches')
+    vteam_queue = Queue(connection, channel, output_queue='team_matches')
+    v1_queue = Queue(connection, channel, output_queue='1v1_matches')
 
+    matches = {}
 
-    def callback(ch, method, properties, body):
-        #print("[x] Received %r" % body)
-        match = json.loads(body.decode('utf-8'))
+    def callback(match):
         if 'final' in match:
-            channel.basic_publish(exchange='', routing_key='team_matches', body=body)
-            channel.basic_publish(exchange='', routing_key='1v1_matches', body=body)
+            vteam_queue.send_with_last()
+            v1_queue.send_with_last()
         else:
             if match['ladder'] == 'RM_TEAM':
-                channel.basic_publish(exchange='', routing_key='team_matches', body=body)
+                vteam_queue.send(match)
             elif match['ladder'] == 'RM_1v1':
-                channel.basic_publish(exchange='', routing_key='1v1_matches', body=body)
-
-    channel.basic_consume(
-        queue='clone_2_matches', on_message_callback=callback, auto_ack=True)
-
-    #print(' [*] Waiting for messages. To exit press CTRL+C')
-    channel.start_consuming()
+                v1_queue.send(match)
+    input_queue = Queue(connection, channel, input_queue='clone_2_matches', callback=callback)
 
 
 

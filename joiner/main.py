@@ -6,6 +6,8 @@ import os
 
 import logging
 
+from custom_queue import Queue, connect
+
 def parse_config_params():
     """ Parse env variables to find program config params
 
@@ -39,33 +41,26 @@ def join(matches, callback):
         for l in left:
             for r in right:
                 joined = {**l, **r}
-                #print(joined)
                 callback(joined)
-    callback({"final": True})
 
 def main():
     config = parse_config_params()
-    connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='rabbitmq'))
+    connection, channel = connect('rabbitmq')
 
-    channel = connection.channel()
-    channel.queue_declare(queue=config['input_queue'])
-    channel.queue_declare(queue=config['output_queue'])
+    output_queue = Queue(connection, channel, output_queue=config['output_queue'], size_msg=50000)
 
     matches = {}
 
-    def callback(ch, method, properties, body):
-        #print("[x] Received %r" % body)
-        msg = json.loads(body.decode('utf-8'))
-        if 'final' in msg:
-            #print("[x] Received %r" % body)
+    def callback(row):
+        if 'final' in row:
             def send(data):
-                channel.basic_publish(exchange='', routing_key=config['output_queue'], body=json.dumps(data))
+                output_queue.send(data)
             join(matches, send)
+            output_queue.send_with_last()
                 
         else:
-            side = "left_by" if msg['side'] == "left" else "right_by"
-            data = msg['data']
+            side = "left_by" if row['side'] == "left" else "right_by"
+            data = row['data']
             key = data[config[side]]
 
             if key not in matches:
@@ -73,13 +68,7 @@ def main():
                 
             matches[key][side].append(data)
             
-        
-
-    channel.basic_consume(
-        queue=config['input_queue'], on_message_callback=callback, auto_ack=True)
-
-    print(' [*] Waiting for messages. To exit press CTRL+C')
-    channel.start_consuming()
+    input_queue = Queue(connection, channel, input_queue=config['input_queue'], callback=callback)
 
 
 

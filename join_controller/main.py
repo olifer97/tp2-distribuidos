@@ -6,6 +6,8 @@ import os
 
 import logging
 
+from custom_queue import Queue, connect
+
 def parse_config_params():
     """ Parse env variables to find program config params
 
@@ -34,57 +36,44 @@ def parse_config_params():
 
 def main():
     config = parse_config_params()
+    connection, channel = connect('rabbitmq')
 
-    connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='rabbitmq'))
-
-    channel = connection.channel()
-    channel.queue_declare(queue=config['left_input_queue'])
-    channel.queue_declare(queue=config['right_input_queue'])
+    output_queues = []
     for i in range(config['joiners']):
-        channel.queue_declare(queue='{}{}'.format(config['output_queues_suffix'],i))
+        output_queues.append(Queue(connection, channel, output_queue='{}{}'.format(config['output_queues_suffix'],i)))
 
 
     sentinels = 0
 
-    def left_callback(ch, method, properties, body):
-        #print("[x] Received %r" % body)
-        #print("[x] Received left")
-        data = json.loads(body.decode('utf-8'))
+    def left_callback(data):
         if 'final' in data:
             nonlocal sentinels
             sentinels += 1
             if sentinels == 2:
-                for i in range(config['joiners']):
-                    channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],i), body=body)
+                for output_queue in output_queues:
+                    output_queue.send_with_last()
         else:
             token = data[config['left_by']]
-            queue = hash(token) % config['joiners']
-            message = json.dumps({"side": "left", "data": data})
-            channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],queue), body=message)
+            index_queue = hash(token) % config['joiners']
+            message = {"side": "left", "data": data}
+            output_queues[index_queue].send(message)
 
-    def right_callback(ch, method, properties, body):
-        #print("[x] Received right")
-        data = json.loads(body.decode('utf-8'))
+    def right_callback(data):
         if 'final' in data:
             nonlocal sentinels
             sentinels += 1
             if sentinels == 2:
-                for i in range(config['joiners']):
-                    channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],i), body=body)
+                for output_queue in output_queues:
+                    output_queue.send_with_last()
         else:
             token = data[config['right_by']]
-            queue = hash(token) % config['joiners']
-            message = json.dumps({"side": "right", "data": data})
-            channel.basic_publish(exchange='', routing_key='{}{}'.format(config['output_queues_suffix'],queue), body=message)
+            index_queue = hash(token) % config['joiners']
+            message = {"side": "right", "data": data}
+            output_queues[index_queue].send(message)
     
-    channel.basic_consume(
-        queue=config['left_input_queue'], on_message_callback=left_callback, auto_ack=True)
-    channel.basic_consume(
-        queue=config['right_input_queue'], on_message_callback=right_callback, auto_ack=True)
 
-    print(' [*] Waiting for messages. To exit press CTRL+C')
-    channel.start_consuming()
+    left_input_queue = Queue(connection, channel, input_queue=config['left_input_queue'], callback=left_callback, start_consuming=False)
+    right_input_queue = Queue(connection, channel, input_queue=config['right_input_queue'], callback=right_callback)
 
 if __name__ == "__main__":
     logging.basicConfig(

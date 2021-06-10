@@ -55,11 +55,7 @@ def main():
     matches = {}
 
     def callback(msg):
-        #print("[x] Received %r" % body)
-        #msg = json.loads(body.decode('utf-8'))
-        #print("recibo {}".format(msg))
         if 'final' in msg:
-            #print("recibi final!")
             def send(data):
                 output_queue.send(data)
             groupby_and_filter(matches, send)

@@ -40,7 +40,6 @@ def main():
     sentinels = 0
 
     def callback(players):
-        #print("lo que me llega {}".format(players))
         if 'final' in players:
             nonlocal sentinels
             sentinels += 1
@@ -54,7 +53,6 @@ def main():
             loser_rating = 0 if loser_string_rating == '' else float(loser_string_rating)
 
             if winner_rating > 1000 and (loser_rating-winner_rating)*100/winner_rating > 30:
-                #print("con lo que me quedo {}".format(players))
                 output_queue.send_bytes(json.dumps(players))
 
     input_queue = Queue(connection, channel, input_queue=config['input_queue'], callback=callback)                

@@ -7,6 +7,8 @@ import os
 
 import logging
 
+from custom_queue import Queue, connect
+
 def parse_config_params():
     """ Parse env variables to find program config params
 
@@ -32,43 +34,31 @@ def parse_config_params():
 
 def main():
     config = parse_config_params()
-    connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host='rabbitmq'))
-
-    channel = connection.channel()
-    channel.queue_declare(queue=config['input_queue'])
-    channel.queue_declare(queue=config['output_queue'])
+    connection, channel = connect('rabbitmq')
+    output_queue = Queue(connection, channel, output_queue=config['output_queue'])
 
     sentinels = 0
 
-    def callback(ch, method, properties, body):
-        print("[x] Received %r" % body)
-        rows_by_civ = json.loads(body.decode('utf-8'))
-
+    def callback(rows_by_civ):
         if 'final' in rows_by_civ:
             nonlocal sentinels
             sentinels += 1
             if sentinels == config['sentinels']:
-                channel.basic_publish(exchange='', routing_key=config['output_queue'], body=body)
+                output_queue.send_last()
                 
         else:
             civ = rows_by_civ['civ']
             rows = rows_by_civ['rows']
+            
+            count_victories = 0
             for row in rows:
-                count = 0
                 if row['winner'] == 'True':
-                    count +=1
-
-            win_rate = count * 100 / len(rows)
+                    count_victories +=1
+            win_rate = (count_victories * 100) / len(rows)
             result = {"civ": civ, "victory_percentaje": win_rate}
-            channel.basic_publish(exchange='', routing_key=config['output_queue'], body=json.dumps(result))
-                        
+            output_queue.send_bytes(json.dumps(result))
 
-    channel.basic_consume(
-        queue=config['input_queue'], on_message_callback=callback, auto_ack=True)
-
-    print(' [*] Waiting for messages. To exit press CTRL+C')
-    channel.start_consuming()
+    input_queue = Queue(connection, channel, input_queue=config['input_queue'], callback=callback)
 
 
 

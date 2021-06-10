@@ -38,7 +38,6 @@ def groupby(data, groupby_key, callback):
             "rows": rows,
         }
         callback(grouped_rows)
-    #callback({"final": True})
 
 def main():
     config = parse_config_params()
@@ -50,12 +49,9 @@ def main():
     data = {}
 
     def callback(msg):
-        #print("[x] Received %r" % body)
-        #msg = json.loads(body.decode('utf-8'))
         if 'final' in msg:
             def send(data):
                 output_queue.send(data)
-                #channel.basic_publish(exchange='', routing_key=config['output_queue'], body=json.dumps(data))
             groupby(data, config['group_by'], send)
             output_queue.send_with_last()
                 
