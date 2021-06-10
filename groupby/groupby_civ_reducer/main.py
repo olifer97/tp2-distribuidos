@@ -31,7 +31,7 @@ def parse_config_params():
 
     return config_params
 
-def groupby(data, groupby_key, callback):
+def groupby_and_aggregate(data, groupby_key, callback):
     for key, aggregation in data.items():
         grouped_rows = {
             groupby_key: key,
@@ -54,7 +54,7 @@ def main():
             nonlocal data
             def send(output):
                 output_queue.send(output)
-            groupby(data, config['group_by'], send)
+            groupby_and_aggregate(data, config['group_by'], send)
             output_queue.send_with_last()
             data = {}
                 

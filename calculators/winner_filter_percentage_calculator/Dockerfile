@@ -1,6 +1,6 @@
 FROM python:3.8
 RUN pip3 install pika
 
-COPY groupby_match_reducer /
+COPY calculators/winner_filter_percentage_calculator /
 COPY common /
 CMD [ "python", "./main.py" ]
